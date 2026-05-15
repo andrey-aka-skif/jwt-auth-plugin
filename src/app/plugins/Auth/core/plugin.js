@@ -1,9 +1,9 @@
-import { createAuth } from './createAuth'
+import { createAuth } from './auth'
 import { AUTH_KEY } from './symbols'
 
 export default {
-  install: (app, options) => {
-    const auth = createAuth(options)
+  install: (app, { options, router }) => {
+    const auth = createAuth({ ...options, router })
     app.provide(AUTH_KEY, auth)
   },
 }

@@ -1,3 +1,3 @@
 <template>
-  <h1>TheHomeView</h1>
+  <h1>Profile</h1>
 </template>
