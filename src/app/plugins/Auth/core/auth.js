@@ -1,8 +1,20 @@
-import { DEFAULT_OPTIONS } from './options'
+import { DEFAULT_CONFIG } from './options'
 import { AUTH_KEY } from './symbols'
 
-export const createAuth = (options = DEFAULT_OPTIONS) => {
-  const config = { ...DEFAULT_OPTIONS, ...options }
+export const createAuth = (options = { DEFAULT_CONFIG }) => {
+  if (!options.router) {
+    throw new Error('Не указан роутер')
+  }
+
+  if (!options.api) {
+    throw new Error('Не указан API')
+  }
+
+  const router = options.router
+  const api = options.api
+  const config = { ...DEFAULT_CONFIG, ...options.config }
+
+  console.log(router, api, config)
 
   const login = async credentials => {
     // Implement login logic here

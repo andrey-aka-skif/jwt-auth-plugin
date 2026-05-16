@@ -1,4 +1,4 @@
-export const DEFAULT_OPTIONS = {
+export const DEFAULT_CONFIG = {
   token: {
     access: {
       receivingKey: 'access_token',

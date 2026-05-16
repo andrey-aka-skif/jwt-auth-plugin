@@ -1,2 +1,2 @@
+export { default } from './plugin'
 export { useAuth } from './useAuth'
-export { createAuth } from './auth'
