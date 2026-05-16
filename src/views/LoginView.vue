@@ -1,43 +1,39 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { useAuthService } from '@/shared/services/authService'
 
 const { login, isAuthenticated: isAuth, user } = useAuthService()
 
-const email_value = 'admin@test.com'
-const password_value = 'password123'
+const email_placeholder = 'admin@test.com'
+const password_placeholder = 'password123'
 
-const email = computed(() => user.value?.email || email_value)
-const password = ref(password_value)
+const email = ref(email_placeholder)
+const password = ref(password_placeholder)
 
 const onSubmit = async () => {
-  await login({
-    email: email.value,
-    password: password.value,
-  })
+  await login({ email: email.value, password: password.value })
 }
 </script>
 
 <template>
-  {{ email }}:{{ password }}
   <div class="form-wrapper">
     <div v-if="!isAuth" class="form">
       <h1>Login</h1>
 
       <div class="form-line">
-        <label for="email">e-mail</label>
+        <label for="email">e-mail [{{ email_placeholder }}]</label>
         <input type="text" id="email" autocomplete="on" v-model="email" />
       </div>
 
       <div class="form-line">
-        <label for="password">password</label>
+        <label for="password">password [{{ password_placeholder }}]</label>
         <input type="password" id="password" v-model="password" />
       </div>
 
       <input type="submit" value="Login" @click="onSubmit" />
     </div>
 
-    <div v-else>Пользователь {{ email }} уже авторизован.</div>
+    <div v-else>Пользователь `{{ user.email }}` уже авторизован.</div>
   </div>
 </template>
 

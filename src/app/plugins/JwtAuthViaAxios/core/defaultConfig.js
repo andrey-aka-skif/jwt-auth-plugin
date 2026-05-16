@@ -1,10 +1,22 @@
 export const DEFAULT_CONFIG = {
+  api: {
+    url: 'http://localhost:5000',
+  },
+  plugin: {
+    autoStart: true,
+  },
+  endpoints: {
+    login: '/auth/login',
+    refresh: '/auth/refresh',
+    logout: '/auth/logout',
+    register: '/auth/register',
+    me: '/auth/me',
+  },
   token: {
     access: {
       receivingKey: 'access_token',
       storageKey: 'access_token',
       storage: 'localStorage',
-      sendingMethod: 'header',
       sendingKey: 'Authorization',
     },
     refresh: {

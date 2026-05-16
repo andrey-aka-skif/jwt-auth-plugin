@@ -1,27 +1,31 @@
 import { computed } from 'vue'
-import { useAuth } from '@/app/plugins/Auth'
+import { useAuth } from '@/app/plugins/JwtAuthViaAxios'
 
 export const useAuthService = () => {
-  const auth = useAuth()
+  const {
+    login: libLogin,
+    logout: libLogout,
+    isAuthenticated: libIsAuthenticated,
+    user: libUser,
+  } = useAuth()
 
   const login = async credentials => {
-    await auth.login({ data: credentials })
+    return await libLogin(credentials)
   }
 
   const logout = () => {
-    auth.logout()
+    return libLogout()
   }
 
   const isAuthenticated = computed(() => {
-    return auth.check()
+    return libIsAuthenticated.value
   })
 
   const user = computed(() => {
-    return auth.user()
+    return libUser.value
   })
 
   return {
-    rawAuth: auth,
     login,
     logout,
     isAuthenticated,
