@@ -76,38 +76,19 @@ export const createJwtAuthViaAxios = ({
   }
 
   const checkAndRefreshToken = async () => {
-    isProcessing.value = true
-
     const accessToken = localStorage.getItem(config.token.access.storageKey) // или другой способ получения токена
 
     if (accessToken) {
       const me = await api.me()
       user.value = me.data
     }
-
-    if (isAuthenticated.value) {
-      const redirectWhenAuth = router.currentRoute.value?.meta?.redirectWhenAuth
-
-      if (redirectWhenAuth) {
-        router.push(redirectWhenAuth)
-      }
-    } else {
-      const redirectWhenNotAuth =
-        router.currentRoute.value?.meta?.redirectWhenNotAuth
-
-      if (redirectWhenNotAuth) {
-        router.push(redirectWhenNotAuth)
-      }
-    }
-
-    isProcessing.value = false
   }
 
   const user = ref(null)
 
   const isAuthenticated = computed(() => !!user.value)
 
-  const isProcessing = ref(false)
+  const isReady = ref(false)
 
   if (!axiosInstance) {
     throw new Error('Требуется Axios instance')
@@ -121,7 +102,12 @@ export const createJwtAuthViaAxios = ({
     api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
   }
 
-  router.beforeEach((to, from, next) => {
+  router.beforeEach(async (to, from, next) => {
+    if (!isReady.value) {
+      await checkAndRefreshToken()
+      isReady.value = true
+    }
+
     const requireAuth = to.matched.reduceRight(
       (value, record) =>
         record.meta.auth !== undefined ? record.meta.auth : value,
@@ -173,7 +159,7 @@ export const createJwtAuthViaAxios = ({
     login,
     logout,
     isAuthenticated,
-    isProcessing: readonly(isProcessing),
+    isReady: readonly(isReady),
     checkAndRefreshToken,
     user: readonly(user),
   }

@@ -1,8 +1,17 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuth } from './app/plugins/JwtAuthViaAxios'
+import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 
-const { user, logout, isProcessing } = useAuth()
+const route = useRoute()
+const { user, logout, isReady } = useAuth()
+
+const showPlaceholder = computed(() => {
+  return route.meta.auth && !isReady
+  // return !isReady
+  // return route.meta.auth
+})
 </script>
 
 <template>
@@ -17,7 +26,7 @@ const { user, logout, isProcessing } = useAuth()
   </header>
 
   <main>
-    <p v-if="isProcessing">Processing...</p>
+    <p v-if="showPlaceholder">Processing...</p>
     <RouterView v-else />
   </main>
 </template>
