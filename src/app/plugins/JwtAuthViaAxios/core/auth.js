@@ -11,20 +11,6 @@ export const createJwtAuthViaAxios = ({
 }) => {
   config = { ...DEFAULT_CONFIG, ...config }
 
-  let isRefreshing = false
-  let failedQueue = []
-
-  const processQueue = (error, token = null) => {
-    failedQueue.forEach(prom =>
-      error ? prom.reject(error) : prom.resolve(token)
-    )
-    failedQueue = []
-  }
-
-  const axiosRefreshInstance = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-  })
-
   const login = async credentials => {
     const response = await api.login(credentials)
 
@@ -82,6 +68,8 @@ export const createJwtAuthViaAxios = ({
       const me = await api.me()
       user.value = me.data
     }
+
+    // здесь нужно обновить токены
   }
 
   const user = ref(null)
@@ -143,6 +131,20 @@ export const createJwtAuthViaAxios = ({
     next()
   })
 
+  let isRefreshing = false
+  let failedQueue = []
+
+  const processQueue = (error, token = null) => {
+    failedQueue.forEach(prom =>
+      error ? prom.reject(error) : prom.resolve(token)
+    )
+    failedQueue = []
+  }
+
+  const axiosRefreshInstance = axios.create({
+    baseURL: config.api.baseUrl,
+  })
+
   axiosInstance.interceptors.request.use(cfg => {
     const accessToken = localStorage.getItem(config.token.access.storageKey) // или другой способ получения токена
 
@@ -153,7 +155,66 @@ export const createJwtAuthViaAxios = ({
     return cfg
   })
 
-  axiosInstance.interceptors.response.use()
+  axiosInstance.interceptors.response.use(
+    res => res,
+    async error => {
+      const originalRequest = error.config
+
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        if (isRefreshing) {
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject })
+          }).then(token => {
+            originalRequest.headers[config.token.access.sendingKey] =
+              `Bearer ${token}`
+            return axiosInstance(originalRequest)
+          })
+        }
+
+        originalRequest._retry = true
+        isRefreshing = true
+
+        try {
+          const refreshToken = localStorage.getItem(
+            config.token.refresh.storageKey
+          )
+
+          const { data } = await axiosRefreshInstance.post(
+            config.endpoints.refresh,
+            {
+              [config.token.refresh.receivingKey]: refreshToken,
+            }
+          )
+
+          localStorage.setItem(
+            config.token.access.storageKey,
+            data[config.token.access.receivingKey]
+          )
+          localStorage.setItem(
+            config.token.refresh.storageKey,
+            data[config.token.refresh.receivingKey]
+          )
+
+          processQueue(null, data[config.token.access.receivingKey])
+
+          originalRequest.headers[config.token.access.sendingKey] =
+            `Bearer ${data[config.token.access.receivingKey]}`
+
+          return axiosInstance(originalRequest)
+        } catch (refreshError) {
+          processQueue(refreshError, null)
+
+          localStorage.removeItem(config.token.access.storageKey)
+          localStorage.removeItem(config.token.refresh.storageKey)
+
+          return Promise.reject(refreshError)
+        } finally {
+          isRefreshing = false
+        }
+      }
+      return Promise.reject(error)
+    }
+  )
 
   const auth = {
     login,

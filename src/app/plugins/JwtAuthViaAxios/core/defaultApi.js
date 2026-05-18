@@ -8,7 +8,7 @@ export const createDefaultApi = ({ axiosInstance, endpoints }) => {
   }
 
   const refresh = async refreshToken => {
-    return await axiosInstance.post(endpoints.refresh, refreshToken)
+    return await axiosInstance.post(endpoints.refresh, refreshToken) // НЕ на этом инстансе!!!
   }
 
   const register = async registrationData => {

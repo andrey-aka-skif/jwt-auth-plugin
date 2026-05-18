@@ -1,6 +1,6 @@
 export const DEFAULT_CONFIG = {
   api: {
-    url: 'http://localhost:5000',
+    baseUrl: 'http://localhost:5000/api',
   },
   plugin: {
     autoStart: true,
