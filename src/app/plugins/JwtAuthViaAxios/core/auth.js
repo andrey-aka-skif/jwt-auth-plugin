@@ -207,6 +207,11 @@ export const createJwtAuthViaAxios = ({
           localStorage.removeItem(config.token.access.storageKey)
           localStorage.removeItem(config.token.refresh.storageKey)
 
+          // если в /profile, то перенаправляем на /login
+          // но делаем не здесь, а полагаемся на гарды
+          // здесь нужно вызвать обновление страницы, независимо от того, где мы сейчас?
+          // или аналог handleUnauthorized()
+
           return Promise.reject(refreshError)
         } finally {
           isRefreshing = false
