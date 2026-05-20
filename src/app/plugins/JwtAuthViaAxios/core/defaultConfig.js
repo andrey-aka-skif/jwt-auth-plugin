@@ -1,6 +1,6 @@
 export const DEFAULT_CONFIG = {
   api: {
-    baseUrl: 'http://localhost:5000/api',
+    baseURL: 'http://localhost:5000/api/',
   },
   plugin: {
     autoStart: true,
@@ -11,6 +11,9 @@ export const DEFAULT_CONFIG = {
     logout: '/auth/logout',
     register: '/auth/register',
     me: '/auth/me',
+  },
+  redirect: {
+    onNotAuthenticated: { name: 'login' },
   },
   token: {
     access: {

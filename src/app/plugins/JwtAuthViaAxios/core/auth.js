@@ -28,10 +28,11 @@ export const createJwtAuthViaAxios = ({
 
     user.value = me.data
 
-    const redirectWhenAuth = router.currentRoute.value?.meta?.redirectWhenAuth
+    const redirectOnAuthenticated =
+      router.currentRoute.value?.meta?.redirectOnAuthenticated
 
-    if (redirectWhenAuth) {
-      router.push(redirectWhenAuth)
+    if (redirectOnAuthenticated) {
+      router.push(redirectOnAuthenticated)
     }
   }
 
@@ -48,11 +49,11 @@ export const createJwtAuthViaAxios = ({
 
       user.value = null
 
-      const redirectWhenNotAuth =
-        router.currentRoute.value?.meta?.redirectWhenNotAuth
+      const redirectOnNotAuthenticated =
+        router.currentRoute.value?.meta?.redirectOnNotAuthenticated
 
-      if (redirectWhenNotAuth) {
-        router.push(redirectWhenNotAuth)
+      if (redirectOnNotAuthenticated) {
+        router.push(redirectOnNotAuthenticated)
       }
     }
   }
@@ -78,8 +79,10 @@ export const createJwtAuthViaAxios = ({
 
   const isReady = ref(false)
 
+  // валидировать конфиг
+
   if (!axiosInstance) {
-    throw new Error('Требуется Axios instance')
+    throw new Error('Требуется Axios instance') // заменить: если не указан, то создать
   }
 
   if (!router) {
@@ -102,34 +105,49 @@ export const createJwtAuthViaAxios = ({
       false
     )
 
-    const redirectWhenNotAuth = to.matched.reduceRight(
+    const redirectOnNotAuthenticated = to.matched.reduceRight(
       (value, record) =>
-        record.meta.redirectWhenNotAuth !== undefined
-          ? record.meta.redirectWhenNotAuth
+        record.meta.redirectOnNotAuthenticated !== undefined
+          ? record.meta.redirectOnNotAuthenticated
           : value,
       false
     )
 
-    const redirectWhenAuth = to.matched.reduceRight(
+    const redirectOnAuthenticated = to.matched.reduceRight(
       (value, record) =>
-        record.meta.redirectWhenAuth !== undefined
-          ? record.meta.redirectWhenAuth
+        record.meta.redirectOnAuthenticated !== undefined
+          ? record.meta.redirectOnAuthenticated
           : value,
       false
     )
 
     if (requireAuth && !isAuthenticated.value) {
-      next(redirectWhenNotAuth || '/')
+      next(redirectOnNotAuthenticated || config.redirect.onNotAuthenticated)
       return
     }
 
-    if (redirectWhenAuth && isAuthenticated.value) {
-      next(redirectWhenAuth)
+    if (redirectOnAuthenticated && isAuthenticated.value) {
+      next(redirectOnAuthenticated)
       return
     }
 
     next()
   })
+
+  const handleServerUnauthorized = () => {
+    const foo =
+      router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
+      config.redirect.onNotAuthenticated
+
+    console.log(foo)
+
+    if (!isAuthenticated.value) {
+      router.push(
+        router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
+          config.redirect.onNotAuthenticated
+      )
+    }
+  }
 
   let isRefreshing = false
   let failedQueue = []
@@ -141,9 +159,7 @@ export const createJwtAuthViaAxios = ({
     failedQueue = []
   }
 
-  const axiosRefreshInstance = axios.create({
-    baseURL: config.api.baseUrl,
-  })
+  const axiosRefreshInstance = axios.create({ baseURL: config.api.baseURL })
 
   axiosInstance.interceptors.request.use(cfg => {
     const accessToken = localStorage.getItem(config.token.access.storageKey) // или другой способ получения токена
@@ -207,10 +223,8 @@ export const createJwtAuthViaAxios = ({
           localStorage.removeItem(config.token.access.storageKey)
           localStorage.removeItem(config.token.refresh.storageKey)
 
-          // если в /profile, то перенаправляем на /login
-          // но делаем не здесь, а полагаемся на гарды
-          // здесь нужно вызвать обновление страницы, независимо от того, где мы сейчас?
-          // или аналог handleUnauthorized()
+          user.value = null
+          handleServerUnauthorized()
 
           return Promise.reject(refreshError)
         } finally {

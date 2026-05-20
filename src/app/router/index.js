@@ -12,7 +12,7 @@ const routes = [
     name: 'login',
     component: () => import('@/views/LoginView.vue'),
     meta: {
-      redirectWhenAuth: { name: 'home' },
+      redirectOnAuthenticated: { name: 'home' },
     },
   },
   {
@@ -21,8 +21,12 @@ const routes = [
     component: () => import('@/views/ProfileView.vue'),
     meta: {
       auth: true,
-      redirectWhenNotAuth: { name: 'login' },
     },
+  },
+  {
+    path: '/content',
+    name: 'content',
+    component: () => import('@/views/ContentView.vue'),
   },
   {
     path: '/:pathMatch(.*)*',
