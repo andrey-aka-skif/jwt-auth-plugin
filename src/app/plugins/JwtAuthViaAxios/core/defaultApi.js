@@ -1,4 +1,8 @@
-export const createDefaultApi = ({ axiosInstance, endpoints }) => {
+export const createDefaultApi = ({
+  axiosInstance,
+  axiosRefreshInstance,
+  endpoints,
+}) => {
   const login = async credentials => {
     return await axiosInstance.post(endpoints.login, credentials)
   }
@@ -8,7 +12,7 @@ export const createDefaultApi = ({ axiosInstance, endpoints }) => {
   }
 
   const refresh = async refreshToken => {
-    return await axiosInstance.post(endpoints.refresh, refreshToken) // НЕ на этом инстансе!!!
+    return await axiosRefreshInstance.post(endpoints.refresh, refreshToken)
   }
 
   const register = async registrationData => {
