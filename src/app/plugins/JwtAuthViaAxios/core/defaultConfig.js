@@ -28,6 +28,8 @@ export const DEFAULT_CONFIG = {
       storage: 'httpOnlyCookie',
       sendingMethod: 'body', // 'body' or 'header'
       sendingKey: 'refresh_token', // 'refresh_token' for body, 'X-Refresh-Token' for header
+      intervalMinutes: 1,
+      intervalTresholdMinutes: 1,
     },
   },
 }

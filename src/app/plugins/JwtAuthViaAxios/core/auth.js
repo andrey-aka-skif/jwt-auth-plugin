@@ -28,6 +28,14 @@ export const createJwtAuthViaAxios = ({
 
     user.value = me.data
 
+    if (isAuthenticated.value) {
+      startRefreshTimer(
+        config.token.refresh?.intervalMinutes,
+        config.token.refresh?.intervalTresholdMinutes
+      )
+    }
+
+    // нужно ли делать редирект здесь?
     const redirectOnAuthenticated =
       router.currentRoute.value?.meta?.redirectOnAuthenticated
 
@@ -37,6 +45,8 @@ export const createJwtAuthViaAxios = ({
   }
 
   const logout = async () => {
+    stopRefreshTimer()
+
     const refreshToken = localStorage.getItem(config.token.refresh.storageKey)
 
     try {
@@ -58,19 +68,89 @@ export const createJwtAuthViaAxios = ({
     }
   }
 
+  const decodeJwt = token => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      return JSON.parse(window.atob(base64))
+    } catch {
+      return null
+    }
+  }
+
+  let initializationPromise = null
+
+  const initialize = async () => {
+    if (initializationPromise) {
+      return initializationPromise
+    }
+
+    initializationPromise = (async () => {
+      await checkAndRefreshToken()
+      isReady.value = true
+
+      if (isAuthenticated.value) {
+        startRefreshTimer(
+          config.token.refresh?.intervalMinutes,
+          config.token.refresh?.intervalTresholdMinutes
+        )
+      }
+    })()
+
+    return initializationPromise
+  }
+
   const refreshToken = async () => {
-    // Implement token refresh logic here
+    const refreshToken = localStorage.getItem(config.token.refresh.storageKey)
+
+    if (!refreshToken) {
+      throw new Error('No refresh token')
+    }
+
+    const { data } = await axiosRefreshInstance.post(config.endpoints.refresh, {
+      [config.token.refresh.receivingKey]: refreshToken,
+    })
+
+    localStorage.setItem(
+      config.token.access.storageKey,
+      data[config.token.access.receivingKey]
+    )
+
+    localStorage.setItem(
+      config.token.refresh.storageKey,
+      data[config.token.refresh.receivingKey]
+    )
   }
 
   const checkAndRefreshToken = async () => {
-    const accessToken = localStorage.getItem(config.token.access.storageKey) // или другой способ получения токена
+    const accessToken = localStorage.getItem(config.token.access.storageKey)
 
-    if (accessToken) {
-      const me = await api.me()
-      user.value = me.data
+    if (!accessToken) {
+      return false
     }
 
-    // здесь нужно обновить токены
+    const decoded = decodeJwt(accessToken)
+
+    if (decoded?.exp) {
+      const expiresIn = decoded.exp * 1000 - Date.now()
+
+      if (expiresIn < config.token.refresh.intervalMinutes * 60 * 1000) {
+        try {
+          await refreshToken()
+        } catch {
+          await logout()
+          return false
+        }
+      }
+    }
+
+    try {
+      const me = await api.me()
+      user.value = me.data
+      return true
+    } catch {
+      return false
+    }
   }
 
   const user = ref(null)
@@ -78,6 +158,57 @@ export const createJwtAuthViaAxios = ({
   const isAuthenticated = computed(() => !!user.value)
 
   const isReady = ref(false)
+
+  let refreshTimer = null
+
+  const startRefreshTimer = (
+    intervalMinutes = 5,
+    intervalTresholdMinutes = 1
+  ) => {
+    if (refreshTimer) {
+      clearInterval(refreshTimer)
+    }
+
+    if (!isAuthenticated.value) {
+      return
+    }
+
+    refreshTimer = setInterval(
+      async () => {
+        if (isAuthenticated.value) {
+          const accessToken = localStorage.getItem(
+            config.token.access.storageKey
+          )
+          const decoded = decodeJwt(accessToken)
+
+          if (decoded?.exp) {
+            const expiresIn = decoded.exp * 1000 - Date.now()
+            // Обновлять за treshold до истечения
+            if (
+              expiresIn < intervalTresholdMinutes * 60 * 1000 &&
+              expiresIn > 0
+            ) {
+              try {
+                await refreshToken()
+              } catch (error) {
+                console.log('Periodic refresh failed', error)
+              }
+            }
+          }
+        } else {
+          stopRefreshTimer()
+        }
+      },
+      intervalMinutes * 60 * 1000
+    )
+  }
+
+  const stopRefreshTimer = () => {
+    if (refreshTimer) {
+      clearInterval(refreshTimer)
+      refreshTimer = null
+    }
+  }
 
   // валидировать конфиг
 
@@ -95,8 +226,7 @@ export const createJwtAuthViaAxios = ({
 
   router.beforeEach(async (to, from, next) => {
     if (!isReady.value) {
-      await checkAndRefreshToken()
-      isReady.value = true
+      await initialize()
     }
 
     const requireAuth = to.matched.reduceRight(
@@ -135,12 +265,6 @@ export const createJwtAuthViaAxios = ({
   })
 
   const handleServerUnauthorized = () => {
-    const foo =
-      router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
-      config.redirect.onNotAuthenticated
-
-    console.log(foo)
-
     if (!isAuthenticated.value) {
       router.push(
         router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
@@ -245,7 +369,9 @@ export const createJwtAuthViaAxios = ({
   }
 
   if (config.plugin.autoStart) {
-    auth.checkAndRefreshToken()
+    initialize().catch(error => {
+      console.error('Auth initialization failed', error)
+    })
   }
 
   return auth

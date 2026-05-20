@@ -1,8 +1,5 @@
 export const AUTH_CONFIG = {
   api: {
-    baseUrl: import.meta.env.VITE_API_BASE_URL,
-  },
-  plugin: {
-    autoStart: true,
+    baseURL: import.meta.env.VITE_API_BASE_URL,
   },
 }
