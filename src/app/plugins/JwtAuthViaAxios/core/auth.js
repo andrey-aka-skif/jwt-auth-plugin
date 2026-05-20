@@ -60,11 +60,90 @@ export const createJwtAuthViaAxios = ({
       user.value = null
 
       const redirectOnNotAuthenticated =
-        router.currentRoute.value?.meta?.redirectOnNotAuthenticated
+        router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
+        config.redirect.onNotAuthenticated
 
       if (redirectOnNotAuthenticated) {
         router.push(redirectOnNotAuthenticated)
       }
+    }
+  }
+
+  const syncAuthState = async () => {
+    const accessToken = localStorage.getItem(config.token.access.storageKey)
+
+    if (!accessToken) {
+      // Токена нет — разлогиниваемся, если залогинены
+      if (isAuthenticated.value) {
+        await logout()
+      }
+      return
+    }
+
+    // Токен есть
+    if (!isAuthenticated.value) {
+      // Мы не авторизованы, но токен есть — пробуем получить пользователя
+      try {
+        const me = await api.me()
+        user.value = me.data
+
+        if (isAuthenticated.value) {
+          startRefreshTimer(
+            config.token.refresh?.intervalMinutes,
+            config.token.refresh?.intervalTresholdMinutes
+          )
+        }
+
+        const redirectOnAuthenticated =
+          router.currentRoute.value?.meta?.redirectOnAuthenticated
+
+        if (redirectOnAuthenticated) {
+          router.push(redirectOnAuthenticated)
+        }
+      } catch {
+        // Токен невалиден — чистим
+        localStorage.removeItem(config.token.access.storageKey)
+        localStorage.removeItem(config.token.refresh.storageKey)
+        user.value = null
+
+        const redirectOnNotAuthenticated =
+          router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
+          config.redirect.onNotAuthenticated
+
+        if (redirectOnNotAuthenticated) {
+          router.push(redirectOnNotAuthenticated)
+        }
+      }
+    } else if (isAuthenticated.value) {
+      // Мы уже авторизованы — просто обновляем таймер
+      startRefreshTimer(
+        config.token.refresh?.intervalMinutes,
+        config.token.refresh?.intervalTresholdMinutes
+      )
+    }
+  }
+
+  const setupCrossTabSynch = () => {
+    window.addEventListener('storage', async event => {
+      if (
+        event.key === config.token.access.storageKey ||
+        event.key === config.token.refresh.storageKey
+      ) {
+        await syncAuthState()
+      }
+    })
+  }
+
+  const refreshUserState = async () => {
+    try {
+      const me = await api.me()
+      user.value = me.data
+
+      // Перезапускаем таймер
+      startRefreshTimer()
+    } catch (error) {
+      // Если получить me не удалось — разлогиниваемся
+      await logout()
     }
   }
 
@@ -358,6 +437,8 @@ export const createJwtAuthViaAxios = ({
       return Promise.reject(error)
     }
   )
+
+  setupCrossTabSynch()
 
   const auth = {
     login,
