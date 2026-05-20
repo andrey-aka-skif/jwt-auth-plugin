@@ -2,6 +2,7 @@ import { computed, readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApi } from './defaultApi'
 import axios from 'axios'
+import { mergeConfigs } from './mergeConfigs'
 
 export const createJwtAuthViaAxios = ({
   axiosInstance,
@@ -9,7 +10,7 @@ export const createJwtAuthViaAxios = ({
   api = undefined,
   config = DEFAULT_CONFIG,
 }) => {
-  config = { ...DEFAULT_CONFIG, ...config }
+  config = mergeConfigs(DEFAULT_CONFIG, config)
 
   const login = async credentials => {
     const response = await api.login(credentials)
