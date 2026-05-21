@@ -1,5 +1,5 @@
 import axios from 'axios'
 
-export const createDefaultAxiosInstance = baseURL => {
+export const createAxiosInstance = baseURL => {
   return axios.create({ baseURL })
 }

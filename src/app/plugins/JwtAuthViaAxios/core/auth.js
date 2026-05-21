@@ -3,7 +3,7 @@ import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApi } from './defaultApi'
 import axios from 'axios'
 import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
-import { createDefaultAxiosInstance } from './defaultAxiosInstance'
+import { createAxiosInstance } from './axiosInstance'
 
 const addRoutingGuards = ({ router, config }) => {
   // router.beforeEach
@@ -105,7 +105,7 @@ export const createJwtAuthViaAxios = ({
   }
 
   if (!axiosInstance) {
-    axiosInstance = createDefaultAxiosInstance(config.api.baseURL)
+    axiosInstance = createAxiosInstance(config.api.baseURL)
   }
 
   if (!axiosInstance) {
