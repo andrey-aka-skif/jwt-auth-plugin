@@ -20,3 +20,21 @@ export const mergeConfigs = (target, source) => {
 
   return output
 }
+
+const decodeJwt = token => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(window.atob(base64))
+  } catch {
+    return null
+  }
+}
+
+export const getTokenRemainingLifetimeMs = token => {
+  const decoded = decodeJwt(token)
+  if (!decoded?.exp) {
+    return null
+  }
+  return decoded.exp * 1000 - Date.now()
+}

@@ -2,7 +2,7 @@ import { computed, readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApi } from './defaultApi'
 import axios from 'axios'
-import { mergeConfigs } from './mergeConfigs'
+import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
 
 export const createJwtAuthViaAxios = ({
   axiosInstance,
@@ -135,29 +135,6 @@ export const createJwtAuthViaAxios = ({
     })
   }
 
-  const refreshUserState = async () => {
-    try {
-      const me = await api.me()
-      user.value = me.data
-
-      // Перезапускаем таймер
-      startRefreshTimer()
-    } catch (error) {
-      // Если получить me не удалось — разлогиниваемся
-      await logout()
-    }
-  }
-
-  const decodeJwt = token => {
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      return JSON.parse(window.atob(base64))
-    } catch {
-      return null
-    }
-  }
-
   let initializationPromise = null
 
   const initialize = async () => {
@@ -209,18 +186,15 @@ export const createJwtAuthViaAxios = ({
       return false
     }
 
-    const decoded = decodeJwt(accessToken)
+    const intervalTresholdMinutes = config.token.refresh.intervalTresholdMinutes
+    const expiresIn = getTokenRemainingLifetimeMs(accessToken)
 
-    if (decoded?.exp) {
-      const expiresIn = decoded.exp * 1000 - Date.now()
-
-      if (expiresIn < config.token.refresh.intervalMinutes * 60 * 1000) {
-        try {
-          await refreshToken()
-        } catch {
-          await logout()
-          return false
-        }
+    if (expiresIn !== null && expiresIn < intervalTresholdMinutes * 60 * 1000) {
+      try {
+        await refreshToken()
+      } catch {
+        await logout()
+        return false
       }
     }
 
@@ -259,20 +233,17 @@ export const createJwtAuthViaAxios = ({
           const accessToken = localStorage.getItem(
             config.token.access.storageKey
           )
-          const decoded = decodeJwt(accessToken)
 
-          if (decoded?.exp) {
-            const expiresIn = decoded.exp * 1000 - Date.now()
-            // Обновлять за treshold до истечения
-            if (
-              expiresIn < intervalTresholdMinutes * 60 * 1000 &&
-              expiresIn > 0
-            ) {
-              try {
-                await refreshToken()
-              } catch (error) {
-                console.log('Periodic refresh failed', error)
-              }
+          const expiresIn = getTokenRemainingLifetimeMs(accessToken)
+
+          if (
+            expiresIn !== null &&
+            expiresIn < intervalTresholdMinutes * 60 * 1000
+          ) {
+            try {
+              await refreshToken()
+            } catch (error) {
+              console.log('Periodic refresh failed', error)
             }
           }
         } else {
