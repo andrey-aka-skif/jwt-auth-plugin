@@ -5,16 +5,34 @@ import axios from 'axios'
 import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
 import { createDefaultAxiosInstance } from './defaultAxiosInstance'
 
+const addRoutingGuards = ({ router, config }) => {
+  // router.beforeEach
+}
+
 export const createJwtAuthViaAxios = ({
-  axiosInstance,
   router,
+  axiosInstance,
   api = undefined,
   config = DEFAULT_CONFIG,
 }) => {
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
+  // const state = createAuthState()
+
+  if (router) {
+    addRoutingGuards({ router, config })
+  }
+
   if (!axiosInstance) {
     axiosInstance = createDefaultAxiosInstance(config.api.baseURL)
+  }
+
+  if (!api) {
+    api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
+  }
+
+  if (!axiosInstance) {
+    throw new Error('Требуется Axios instance') // заменить: если не указан, то создать
   }
 
   const login = async credentials => {
@@ -271,18 +289,6 @@ export const createJwtAuthViaAxios = ({
   }
 
   // валидировать конфиг
-
-  if (!axiosInstance) {
-    throw new Error('Требуется Axios instance') // заменить: если не указан, то создать
-  }
-
-  if (!router) {
-    throw new Error('Не указан объект router')
-  }
-
-  if (!api) {
-    api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
-  }
 
   router.beforeEach(async (to, from, next) => {
     if (!isReady.value) {

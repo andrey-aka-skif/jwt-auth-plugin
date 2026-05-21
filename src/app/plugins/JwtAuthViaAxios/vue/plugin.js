@@ -2,10 +2,10 @@ import { createJwtAuthViaAxios } from '../core/auth'
 import { AUTH_KEY } from './symbols'
 
 export default {
-  install: async (app, { axiosInstance, router, api, config }) => {
+  install: async (app, { router, axiosInstance, api, config }) => {
     const auth = createJwtAuthViaAxios({
-      axiosInstance,
       router,
+      axiosInstance,
       api,
       config,
     })
