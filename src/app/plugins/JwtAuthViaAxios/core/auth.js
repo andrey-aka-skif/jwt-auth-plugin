@@ -9,6 +9,66 @@ const addRoutingGuards = ({ router, config }) => {
   // router.beforeEach
 }
 
+export function createAuthState() {
+  const user = ref(null)
+  const isReady = ref(false)
+  const accessToken = ref(null)
+  const isAuthenticated = computed(() => !!user.value)
+
+  return {
+    user,
+    isReady,
+    accessToken,
+    isAuthenticated,
+  }
+}
+
+export function createAuthApi({ axiosInstance, config, api }) {
+  return {
+    login(credentials) {},
+    logout() {},
+    me() {},
+    refresh() {},
+  }
+}
+
+export function createTokenManager({ state, api, config }) {
+  async function refreshToken() {}
+
+  function setToken(token) {}
+
+  return {
+    refreshToken,
+    setToken,
+  }
+}
+
+export function createSessionManager({ state, tokens }) {
+  async function login() {}
+  async function logout() {}
+
+  return {
+    login,
+    logout,
+  }
+}
+
+export function createAuthFacade({ state, session, tokens }) {
+  return {
+    login: session.login,
+    logout: session.logout,
+
+    checkAndRefreshToken: tokens.refreshToken,
+
+    user: readonly(state.user),
+    isReady: readonly(state.isReady),
+  }
+}
+
+const setupRoutingGuards = ({ router, auth }) => {}
+
+const setupCrossTabSync = ({ auth }) => {}
+
 export const createJwtAuthViaAxios = ({
   router,
   axiosInstance,
@@ -17,7 +77,28 @@ export const createJwtAuthViaAxios = ({
 }) => {
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
-  // const state = createAuthState()
+  const state = createAuthState()
+  const _api = createAuthApi({ axiosInstance, config, api }) // или дефолтное
+  const tokens = createTokenManager({ state, _api, config })
+  const session = createSessionManager({ state, tokens })
+
+  const _auth = createAuthFacade({
+    state,
+    session,
+    tokens,
+  })
+
+  setupRoutingGuards({ router, _auth })
+
+  setupCrossTabSync({ _auth })
+
+  return _auth
+
+  // *************************************
+
+  if (!api) {
+    api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
+  }
 
   if (router) {
     addRoutingGuards({ router, config })
@@ -25,10 +106,6 @@ export const createJwtAuthViaAxios = ({
 
   if (!axiosInstance) {
     axiosInstance = createDefaultAxiosInstance(config.api.baseURL)
-  }
-
-  if (!api) {
-    api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
   }
 
   if (!axiosInstance) {
