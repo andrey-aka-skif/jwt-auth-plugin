@@ -3,6 +3,7 @@ import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApi } from './defaultApi'
 import axios from 'axios'
 import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
+import { createDefaultAxiosInstance } from './defaultAxiosInstance'
 
 export const createJwtAuthViaAxios = ({
   axiosInstance,
@@ -12,17 +13,21 @@ export const createJwtAuthViaAxios = ({
 }) => {
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
+  if (!axiosInstance) {
+    axiosInstance = createDefaultAxiosInstance(config.api.baseURL)
+  }
+
   const login = async credentials => {
     const response = await api.login(credentials)
 
     localStorage.setItem(
       config.token.access.storageKey,
-      response.data[config.token.access.receivingKey]
+      response.data[config.token.access.responseKey]
     )
 
     localStorage.setItem(
       config.token.refresh.storageKey,
-      response.data[config.token.refresh.receivingKey]
+      response.data[config.token.refresh.responseKey]
     )
 
     const me = await api.me()
@@ -30,9 +35,9 @@ export const createJwtAuthViaAxios = ({
     user.value = me.data
 
     if (isAuthenticated.value) {
-      startRefreshTimer(
-        config.token.refresh?.intervalMinutes,
-        config.token.refresh?.intervalTresholdMinutes
+      startProactiveTokenRefresh(
+        config.token.refresh?.checkIntervalMinutes,
+        config.token.refresh?.checkIntervalThresholdMinutes
       )
     }
 
@@ -46,13 +51,13 @@ export const createJwtAuthViaAxios = ({
   }
 
   const logout = async () => {
-    stopRefreshTimer()
+    stopProactiveTokenRefresh()
 
     const refreshToken = localStorage.getItem(config.token.refresh.storageKey)
 
     try {
       if (refreshToken) {
-        await api.logout({ refresh_token: refreshToken })
+        await api.logout({ [config.token.refresh.requestKey]: refreshToken })
       }
     } finally {
       localStorage.removeItem(config.token.access.storageKey)
@@ -89,9 +94,9 @@ export const createJwtAuthViaAxios = ({
         user.value = me.data
 
         if (isAuthenticated.value) {
-          startRefreshTimer(
-            config.token.refresh?.intervalMinutes,
-            config.token.refresh?.intervalTresholdMinutes
+          startProactiveTokenRefresh(
+            config.token.refresh?.checkIntervalMinutes,
+            config.token.refresh?.checkIntervalThresholdMinutes
           )
         }
 
@@ -117,9 +122,9 @@ export const createJwtAuthViaAxios = ({
       }
     } else if (isAuthenticated.value) {
       // Мы уже авторизованы — просто обновляем таймер
-      startRefreshTimer(
-        config.token.refresh?.intervalMinutes,
-        config.token.refresh?.intervalTresholdMinutes
+      startProactiveTokenRefresh(
+        config.token.refresh?.checkIntervalMinutes,
+        config.token.refresh?.checkIntervalThresholdMinutes
       )
     }
   }
@@ -147,9 +152,9 @@ export const createJwtAuthViaAxios = ({
       isReady.value = true
 
       if (isAuthenticated.value) {
-        startRefreshTimer(
-          config.token.refresh?.intervalMinutes,
-          config.token.refresh?.intervalTresholdMinutes
+        startProactiveTokenRefresh(
+          config.token.refresh?.checkIntervalMinutes,
+          config.token.refresh?.checkIntervalThresholdMinutes
         )
       }
     })()
@@ -165,17 +170,17 @@ export const createJwtAuthViaAxios = ({
     }
 
     const { data } = await axiosRefreshInstance.post(config.endpoints.refresh, {
-      [config.token.refresh.receivingKey]: refreshToken,
+      [config.token.refresh.requestKey]: refreshToken,
     })
 
     localStorage.setItem(
       config.token.access.storageKey,
-      data[config.token.access.receivingKey]
+      data[config.token.access.responseKey]
     )
 
     localStorage.setItem(
       config.token.refresh.storageKey,
-      data[config.token.refresh.receivingKey]
+      data[config.token.refresh.responseKey]
     )
   }
 
@@ -186,10 +191,14 @@ export const createJwtAuthViaAxios = ({
       return false
     }
 
-    const intervalTresholdMinutes = config.token.refresh.intervalTresholdMinutes
+    const checkIntervalThresholdMinutes =
+      config.token.refresh.checkIntervalThresholdMinutes
     const expiresIn = getTokenRemainingLifetimeMs(accessToken)
 
-    if (expiresIn !== null && expiresIn < intervalTresholdMinutes * 60 * 1000) {
+    if (
+      expiresIn !== null &&
+      expiresIn < checkIntervalThresholdMinutes * 60 * 1000
+    ) {
       try {
         await refreshToken()
       } catch {
@@ -215,9 +224,9 @@ export const createJwtAuthViaAxios = ({
 
   let refreshTimer = null
 
-  const startRefreshTimer = (
+  const startProactiveTokenRefresh = (
     intervalMinutes = 5,
-    intervalTresholdMinutes = 1
+    intervalThresholdMinutes = 1
   ) => {
     if (refreshTimer) {
       clearInterval(refreshTimer)
@@ -238,7 +247,7 @@ export const createJwtAuthViaAxios = ({
 
           if (
             expiresIn !== null &&
-            expiresIn < intervalTresholdMinutes * 60 * 1000
+            expiresIn < intervalThresholdMinutes * 60 * 1000
           ) {
             try {
               await refreshToken()
@@ -247,14 +256,14 @@ export const createJwtAuthViaAxios = ({
             }
           }
         } else {
-          stopRefreshTimer()
+          stopProactiveTokenRefresh()
         }
       },
       intervalMinutes * 60 * 1000
     )
   }
 
-  const stopRefreshTimer = () => {
+  const stopProactiveTokenRefresh = () => {
     if (refreshTimer) {
       clearInterval(refreshTimer)
       refreshTimer = null
@@ -340,7 +349,7 @@ export const createJwtAuthViaAxios = ({
     const accessToken = localStorage.getItem(config.token.access.storageKey) // или другой способ получения токена
 
     if (accessToken) {
-      cfg.headers[config.token.access.sendingKey] = `Bearer ${accessToken}`
+      cfg.headers[config.token.access.requestKey] = `Bearer ${accessToken}`
     }
 
     return cfg
@@ -356,7 +365,7 @@ export const createJwtAuthViaAxios = ({
           return new Promise((resolve, reject) => {
             failedQueue.push({ resolve, reject })
           }).then(token => {
-            originalRequest.headers[config.token.access.sendingKey] =
+            originalRequest.headers[config.token.access.requestKey] =
               `Bearer ${token}`
             return axiosInstance(originalRequest)
           })
@@ -373,23 +382,23 @@ export const createJwtAuthViaAxios = ({
           const { data } = await axiosRefreshInstance.post(
             config.endpoints.refresh,
             {
-              [config.token.refresh.receivingKey]: refreshToken,
+              [config.token.refresh.requestKey]: refreshToken,
             }
           )
 
           localStorage.setItem(
             config.token.access.storageKey,
-            data[config.token.access.receivingKey]
+            data[config.token.access.responseKey]
           )
           localStorage.setItem(
             config.token.refresh.storageKey,
-            data[config.token.refresh.receivingKey]
+            data[config.token.refresh.responseKey]
           )
 
-          processQueue(null, data[config.token.access.receivingKey])
+          processQueue(null, data[config.token.access.responseKey])
 
-          originalRequest.headers[config.token.access.sendingKey] =
-            `Bearer ${data[config.token.access.receivingKey]}`
+          originalRequest.headers[config.token.access.requestKey] =
+            `Bearer ${data[config.token.access.requestKey]}`
 
           return axiosInstance(originalRequest)
         } catch (refreshError) {

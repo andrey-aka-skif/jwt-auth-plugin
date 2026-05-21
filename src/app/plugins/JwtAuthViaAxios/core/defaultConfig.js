@@ -4,6 +4,7 @@ export const DEFAULT_CONFIG = {
   },
   plugin: {
     autoStart: true,
+    autoRefresh: true,
   },
   endpoints: {
     login: '/auth/login',
@@ -17,19 +18,19 @@ export const DEFAULT_CONFIG = {
   },
   token: {
     access: {
-      receivingKey: 'access_token',
+      // TODO: storage: 'localStorage' | 'memory'
+      responseKey: 'access_token',
+      requestKey: 'Authorization',
       storageKey: 'access_token',
-      storage: 'localStorage',
-      sendingKey: 'Authorization',
     },
     refresh: {
-      receivingKey: 'refresh_token',
+      // TODO: storage: 'localStorage' | 'httpOnlyCookie' | 'memory'
+      responseKey: 'refresh_token',
+      requestKey: 'refresh_token', // 'refresh_token' | 'X-Refresh-Token'
+      requestMethod: 'body', // 'body' | 'header'
       storageKey: 'refresh_token',
-      storage: 'httpOnlyCookie',
-      sendingMethod: 'body', // 'body' or 'header'
-      sendingKey: 'refresh_token', // 'refresh_token' for body, 'X-Refresh-Token' for header
-      intervalMinutes: 1,
-      intervalTresholdMinutes: 1,
+      checkIntervalMinutes: 0.1,
+      checkIntervalThresholdMinutes: 0.01,
     },
   },
 }
