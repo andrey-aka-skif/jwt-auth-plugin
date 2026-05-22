@@ -1,9 +1,11 @@
 import { computed, readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
-import { createDefaultApi } from './defaultApi'
+import { createDefaultApiAdapter } from './defaultApiAdapter'
 import axios from 'axios'
 import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
 import { createAxiosInstance } from './axiosInstance'
+import { setupRoutingGuards } from './setupRoutingGuards'
+import { setupCrossTabSync } from './setupCrossTabSync'
 
 const addRoutingGuards = ({ router, config }) => {
   // router.beforeEach
@@ -23,51 +25,61 @@ export function createAuthState() {
   }
 }
 
-export function createAuthApi({ axiosInstance, config, api }) {
-  return {
-    login(credentials) {},
-    logout() {},
-    me() {},
-    refresh() {},
-  }
-}
-
 export function createTokenManager({ state, api, config }) {
+  function getToken(key) {}
+  function setToken(key, token) {}
   async function refreshToken() {}
-
-  function setToken(token) {}
+  function clear() {}
+  function isAccessTokenExists() {}
 
   return {
-    refreshToken,
+    getToken,
     setToken,
+    clear,
+    refreshToken,
+    isAccessTokenExists,
   }
 }
 
-export function createSessionManager({ state, tokens }) {
-  async function login() {}
-  async function logout() {}
+export function createSessionManager({
+  state,
+  api,
+  tokens,
+  redirectOnNotAuthenticatedHandler,
+  redirectOnAuthenticatedHandler,
+}) {
+  const login = async credentials => {
+    const response = await api.login(credentials)
+  }
+
+  const logout = async () => {
+    console.log('logout...')
+    redirectOnNotAuthenticatedHandler?.()
+  }
+
+  const refresh = async () => {
+    try {
+      const me = await api.me()
+      state.user.value = me.data
+      redirectOnAuthenticatedHandler?.()
+    } catch {
+      clear()
+    }
+  }
+
+  const clear = () => {
+    tokens.clear()
+    state.user.value = null
+    redirectOnNotAuthenticatedHandler?.()
+  }
 
   return {
     login,
     logout,
+    refresh,
+    clear,
   }
 }
-
-export function createAuthFacade({ state, session, tokens }) {
-  return {
-    login: session.login,
-    logout: session.logout,
-
-    checkAndRefreshToken: tokens.refreshToken,
-
-    user: readonly(state.user),
-    isReady: readonly(state.isReady),
-  }
-}
-
-const setupRoutingGuards = ({ router, auth }) => {}
-
-const setupCrossTabSync = ({ auth }) => {}
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -78,26 +90,65 @@ export const createJwtAuthViaAxios = ({
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
   const state = createAuthState()
-  const _api = createAuthApi({ axiosInstance, config, api }) // или дефолтное
-  const tokens = createTokenManager({ state, _api, config })
-  const session = createSessionManager({ state, tokens })
 
-  const _auth = createAuthFacade({
+  if (!api) {
+    api = createDefaultApiAdapter({
+      axiosInstance,
+      baseURL: config.api.baseURL,
+      endpoints: config.endpoints,
+    })
+  }
+
+  const tokens = createTokenManager({ state, api, config })
+  const session = createSessionManager({ state, api, tokens })
+
+  const initialize_ = async () => {
+    console.log('initialize...')
+  }
+
+  const startProactiveTokenRefresh_ = () => {
+    console.log('startProactiveTokenRefresh...')
+  }
+
+  setupRoutingGuards({
+    router,
     state,
-    session,
-    tokens,
+    initializeHandler: initialize_,
+    redirect: config.redirect,
   })
 
-  setupRoutingGuards({ router, _auth })
+  setupCrossTabSync({
+    state,
+    tokens,
+    session,
+    accessTokenKey: config.token.access.storageKey,
+    refreshTokenKey: config.token.refresh.storageKey,
+    startProactiveTokenRefreshHandler: startProactiveTokenRefresh_,
+  })
 
-  setupCrossTabSync({ _auth })
+  const _auth = {
+    login: session.login,
+    logout: session.logout,
+    user: readonly(state.user),
+    isReady: readonly(state.isReady),
+    isAuthenticated: readonly(state.isAuthenticated),
+  }
+
+  if (config.plugin.autoStart) {
+    initialize_().catch(error => {
+      console.error('Ошибка при инициализации аутентификации', error.message)
+    })
+  }
 
   return _auth
 
   // *************************************
 
-  if (!api) {
-    api = createDefaultApi({ axiosInstance, endpoints: config.endpoints })
+  if (!_api_) {
+    _api_ = createDefaultApiAdapter({
+      axiosInstance,
+      endpoints: config.endpoints,
+    })
   }
 
   if (router) {
@@ -113,7 +164,7 @@ export const createJwtAuthViaAxios = ({
   }
 
   const login = async credentials => {
-    const response = await api.login(credentials)
+    const response = await _api_.login(credentials)
 
     localStorage.setItem(
       config.token.access.storageKey,
@@ -125,7 +176,7 @@ export const createJwtAuthViaAxios = ({
       response.data[config.token.refresh.responseKey]
     )
 
-    const me = await api.me()
+    const me = await _api_.me()
 
     user.value = me.data
 
@@ -152,7 +203,7 @@ export const createJwtAuthViaAxios = ({
 
     try {
       if (refreshToken) {
-        await api.logout({ [config.token.refresh.requestKey]: refreshToken })
+        await _api_.logout({ [config.token.refresh.requestKey]: refreshToken })
       }
     } finally {
       localStorage.removeItem(config.token.access.storageKey)
@@ -185,7 +236,7 @@ export const createJwtAuthViaAxios = ({
     if (!isAuthenticated.value) {
       // Мы не авторизованы, но токен есть — пробуем получить пользователя
       try {
-        const me = await api.me()
+        const me = await _api_.me()
         user.value = me.data
 
         if (isAuthenticated.value) {
@@ -303,7 +354,7 @@ export const createJwtAuthViaAxios = ({
     }
 
     try {
-      const me = await api.me()
+      const me = await _api_.me()
       user.value = me.data
       return true
     } catch {
