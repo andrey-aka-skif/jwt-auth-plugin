@@ -7,6 +7,7 @@ import { createAxiosInstance } from './axiosInstance'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 
+// удалить
 const addRoutingGuards = ({ router, config }) => {
   // router.beforeEach
 }
