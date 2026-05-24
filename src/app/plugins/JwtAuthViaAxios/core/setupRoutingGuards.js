@@ -1,11 +1,11 @@
 export const setupRoutingGuards = ({
   router,
-  state,
+  sessionManager,
   redirect,
   initializeHandler,
 }) => {
   router.beforeEach(async (to, from, next) => {
-    if (!state.isReady.value) {
+    if (!sessionManager.isReady.value) {
       await initializeHandler?.()
     }
 
@@ -31,12 +31,12 @@ export const setupRoutingGuards = ({
       false
     )
 
-    if (requireAuth && !state.isAuthenticated.value) {
+    if (requireAuth && !sessionManager.isAuthenticated.value) {
       next(redirectOnNotAuthenticated || redirect.onNotAuthenticated)
       return
     }
 
-    if (redirectOnAuthenticated && state.isAuthenticated.value) {
+    if (redirectOnAuthenticated && sessionManager.isAuthenticated.value) {
       next(redirectOnAuthenticated)
       return
     }

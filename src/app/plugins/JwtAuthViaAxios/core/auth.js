@@ -1,85 +1,20 @@
 import { computed, readonly, ref } from 'vue'
+import axios from 'axios'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApiAdapter } from './defaultApiAdapter'
-import axios from 'axios'
 import { getTokenRemainingLifetimeMs, mergeConfigs } from './utils'
 import { createAxiosInstance } from './axiosInstance'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
+import { createTokenService } from './tokenService'
+import { createSessionManager } from './sessionManager'
+import { createRedirectRules } from './redirectRules'
+import { createTokenStorage } from './tokenStorage'
+import { setupInterceptors } from './setupInterceptors'
 
 // удалить
 const addRoutingGuards = ({ router, config }) => {
   // router.beforeEach
-}
-
-export function createAuthState() {
-  const user = ref(null)
-  const isReady = ref(false)
-  const accessToken = ref(null)
-  const isAuthenticated = computed(() => !!user.value)
-
-  return {
-    user,
-    isReady,
-    accessToken,
-    isAuthenticated,
-  }
-}
-
-export function createTokenManager({ state, api, config }) {
-  function getToken(key) {}
-  function setToken(key, token) {}
-  async function refreshToken() {}
-  function clear() {}
-  function isAccessTokenExists() {}
-
-  return {
-    getToken,
-    setToken,
-    clear,
-    refreshToken,
-    isAccessTokenExists,
-  }
-}
-
-export function createSessionManager({
-  state,
-  api,
-  tokens,
-  redirectOnNotAuthenticatedHandler,
-  redirectOnAuthenticatedHandler,
-}) {
-  const login = async credentials => {
-    const response = await api.login(credentials)
-  }
-
-  const logout = async () => {
-    console.log('logout...')
-    redirectOnNotAuthenticatedHandler?.()
-  }
-
-  const refresh = async () => {
-    try {
-      const me = await api.me()
-      state.user.value = me.data
-      redirectOnAuthenticatedHandler?.()
-    } catch {
-      clear()
-    }
-  }
-
-  const clear = () => {
-    tokens.clear()
-    state.user.value = null
-    redirectOnNotAuthenticatedHandler?.()
-  }
-
-  return {
-    login,
-    logout,
-    refresh,
-    clear,
-  }
 }
 
 export const createJwtAuthViaAxios = ({
@@ -90,8 +25,6 @@ export const createJwtAuthViaAxios = ({
 }) => {
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
-  const state = createAuthState()
-
   if (!api) {
     api = createDefaultApiAdapter({
       axiosInstance,
@@ -100,8 +33,28 @@ export const createJwtAuthViaAxios = ({
     })
   }
 
-  const tokens = createTokenManager({ state, api, config })
-  const session = createSessionManager({ state, api, tokens })
+  const tokenStorage = createTokenStorage({
+    accessTokenStorageKey: config.token.access.storageKey,
+    refreshTokenStorageKey: config.token.refresh.storageKey,
+  })
+
+  const tokenService = createTokenService({
+    tokenStorage,
+    api,
+    accessTokenResponseKey: config.token.access.requestKey,
+    refreshTokenResponseKey: config.token.refresh.requestKey,
+  })
+
+  const sessionManager = createSessionManager({
+    api,
+    tokenService,
+    // redirectOnNotAuthenticatedHandler: tryRedirect,
+    // redirectOnAuthenticatedHandler: tryRedirect,
+    accessTokenResponseKey: config.token.access.responseKey,
+    refreshTokenResponseKey: config.token.refresh.responseKey,
+  })
+
+  const { tryRedirect } = createRedirectRules({ sessionManager, router })
 
   const initialize_ = async () => {
     console.log('initialize...')
@@ -111,28 +64,35 @@ export const createJwtAuthViaAxios = ({
     console.log('startProactiveTokenRefresh...')
   }
 
+  setupInterceptors({
+    axiosInstance,
+    tokenService,
+    accessTokenResponseKey: config.token.access.requestKey,
+    accessTokenRequestKey: config.token.access.requestKey,
+  })
+
   setupRoutingGuards({
     router,
-    state,
+    sessionManager,
     initializeHandler: initialize_,
     redirect: config.redirect,
   })
 
   setupCrossTabSync({
-    state,
-    tokens,
-    session,
+    sessionManager,
+    tokens: tokenService,
+    session: sessionManager,
     accessTokenKey: config.token.access.storageKey,
     refreshTokenKey: config.token.refresh.storageKey,
     startProactiveTokenRefreshHandler: startProactiveTokenRefresh_,
   })
 
   const _auth = {
-    login: session.login,
-    logout: session.logout,
-    user: readonly(state.user),
-    isReady: readonly(state.isReady),
-    isAuthenticated: readonly(state.isAuthenticated),
+    login: sessionManager.login,
+    logout: sessionManager.logout,
+    user: readonly(sessionManager.user),
+    isReady: readonly(sessionManager.isReady),
+    isAuthenticated: readonly(sessionManager.isAuthenticated),
   }
 
   if (config.plugin.autoStart) {

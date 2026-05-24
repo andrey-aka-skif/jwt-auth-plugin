@@ -1,5 +1,5 @@
 export const setupCrossTabSync = ({
-  state,
+  sessionManager,
   tokens,
   sessions,
   accessTokenKey,
@@ -9,14 +9,14 @@ export const setupCrossTabSync = ({
   const syncAuthState = async () => {
     // Токена нет. Если залогинены, то нужно разлогиниться
     if (!tokens.isAccessTokenExists()) {
-      if (state.isAuthenticated.value) {
-        await state.logout()
+      if (sessionManager.isAuthenticated.value) {
+        await sessionManager.logout()
       }
       return
     }
 
     // Токен есть. Если аутентифицированы, то обновляем таймер
-    if (state.isAuthenticated.value) {
+    if (sessionManager.isAuthenticated.value) {
       startProactiveTokenRefreshHandler?.()
       return
     }
@@ -24,7 +24,7 @@ export const setupCrossTabSync = ({
     // Токен есть. Обновляем сессию. Если не аутентифицированы, то пробуем аутентифицироваться
     await sessions.refresh()
 
-    if (state.isAuthenticated.value) {
+    if (sessionManager.isAuthenticated.value) {
       startProactiveTokenRefreshHandler?.()
     }
   }
