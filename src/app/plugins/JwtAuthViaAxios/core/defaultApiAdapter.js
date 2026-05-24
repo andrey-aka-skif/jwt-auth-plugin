@@ -1,50 +1,49 @@
 import axios from 'axios'
 
-export const createDefaultApiAdapter = ({
-  axiosInstance,
-  baseURL,
-  endpoints,
-  config,
-}) => {
+export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
   if (!axiosInstance) {
     throw new Error('Не передан экземпляр axios')
   }
 
-  const axiosRefreshInstance = axios.create({ baseURL })
+  const axiosRefreshInstance = axios.create({ baseURL: config.api.baseURL })
+
+  const sendRequestWithRefreshToken = (endpoint, refreshToken) => {
+    const method = config.token.refresh.requestMethod
+
+    if (method === 'header') {
+      return axiosRefreshInstance.post(endpoint, null, {
+        headers: {
+          [config.token.refresh.requestKey]: refreshToken,
+        },
+      })
+    }
+
+    if (method === 'body') {
+      return axiosRefreshInstance.post(endpoint, {
+        [config.token.refresh.requestKey]: refreshToken,
+      })
+    }
+
+    throw new Error(
+      'Неверная конфигурация: неизвестный метод передачи рефреш токена'
+    )
+  }
 
   return {
     register(registrationData) {
-      return axiosInstance.post(endpoints.register, registrationData)
+      return axiosInstance.post(config.endpoints.register, registrationData)
     },
     login(credentials) {
-      return axiosInstance.post(endpoints.login, credentials)
-    },
-    logout(refreshToken) {
-      return axiosInstance.post(endpoints.logout, refreshToken)
+      return axiosInstance.post(config.endpoints.login, credentials)
     },
     me() {
-      return axiosInstance.get(endpoints.me)
+      return axiosInstance.get(config.endpoints.me)
+    },
+    logout(refreshToken) {
+      return sendRequestWithRefreshToken(config.endpoints.logout, refreshToken)
     },
     refresh(refreshToken) {
-      const method = config.token.refresh.requestMethod
-
-      if (method === 'header') {
-        return axiosRefreshInstance.post(endpoints.refresh, null, {
-          headers: {
-            [config.token.refresh.requestKey]: refreshToken,
-          },
-        })
-      }
-
-      if (method === 'body') {
-        return axiosRefreshInstance.post(endpoints.refresh, {
-          [config.token.refresh.requestKey]: refreshToken,
-        })
-      }
-
-      throw new Error(
-        'Неверная конфигурация: неизвестный метод передачи рефреш токена'
-      )
+      return sendRequestWithRefreshToken(config.endpoints.refresh, refreshToken)
     },
   }
 }

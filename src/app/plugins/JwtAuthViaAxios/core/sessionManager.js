@@ -3,8 +3,8 @@ import { computed, ref } from 'vue'
 export const createSessionManager = ({
   api,
   tokenService,
-  redirectOnNotAuthenticatedHandler,
-  redirectOnAuthenticatedHandler,
+  onClearSession,
+  onRestoreSession,
   accessTokenResponseKey,
   refreshTokenResponseKey,
 }) => {
@@ -22,33 +22,42 @@ export const createSessionManager = ({
     })
 
     await restoreSession()
-
-    redirectOnAuthenticatedHandler?.()
-
-    // Здесь ещё что-то про проактивную проверку токена
-    // Но возможно, не здесь
   }
 
   const logout = async () => {
-    console.log('logout...')
-    redirectOnNotAuthenticatedHandler?.()
+    const refreshToken = tokenService.getRefreshToken()
+
+    try {
+      await api.logout(refreshToken)
+    } catch (error) {
+      console.error('Ошибка при попытке разлогиниться на сервере:', error)
+    } finally {
+      clear()
+    }
   }
 
   const restoreSession = async () => {
     try {
       const me = await api.me()
       user.value = me.data
-      redirectOnAuthenticatedHandler?.()
+      onRestoreSession?.()
     } catch {
-      if(error instanceof AuthenticationError
       clear()
+    } finally {
+      isReady.value = true
     }
   }
 
   const clear = () => {
     tokenService.clearTokens()
     user.value = null
-    redirectOnNotAuthenticatedHandler?.()
+    isReady.value = true
+
+    onClearSession?.()
+  }
+
+  const onAuthFailure = () => {
+    clear()
   }
 
   return {
@@ -59,5 +68,6 @@ export const createSessionManager = ({
     logout,
     restoreSession,
     clear,
+    onAuthFailure,
   }
 }

@@ -26,11 +26,7 @@ export const createJwtAuthViaAxios = ({
   config = mergeConfigs(DEFAULT_CONFIG, config)
 
   if (!api) {
-    api = createDefaultApiAdapter({
-      axiosInstance,
-      baseURL: config.api.baseURL,
-      endpoints: config.endpoints,
-    })
+    api = createDefaultApiAdapter({ axiosInstance, config })
   }
 
   const tokenStorage = createTokenStorage({
@@ -67,6 +63,7 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
+    sessionManager,
     accessTokenResponseKey: config.token.access.requestKey,
     accessTokenRequestKey: config.token.access.requestKey,
   })
