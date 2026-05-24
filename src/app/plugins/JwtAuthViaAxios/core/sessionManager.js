@@ -1,10 +1,11 @@
 import { computed, ref } from 'vue'
+import { AuthenticationError } from './AuthenticationError'
 
 export const createSessionManager = ({
   api,
   tokenService,
-  onClearSession,
-  onRestoreSession,
+  onAuthenticated,
+  onUnauthenticated,
   accessTokenResponseKey,
   refreshTokenResponseKey,
 }) => {
@@ -40,9 +41,11 @@ export const createSessionManager = ({
     try {
       const me = await api.me()
       user.value = me.data
-      onRestoreSession?.()
-    } catch {
-      clear()
+      onAuthenticated?.()
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        clear()
+      }
     } finally {
       isReady.value = true
     }
@@ -53,7 +56,7 @@ export const createSessionManager = ({
     user.value = null
     isReady.value = true
 
-    onClearSession?.()
+    onUnauthenticated?.()
   }
 
   const onAuthFailure = () => {
