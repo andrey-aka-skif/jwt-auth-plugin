@@ -1,37 +1,21 @@
 export const setupCrossTabSync = ({
+  tokenService,
   sessionManager,
-  tokens,
-  sessions,
-  accessTokenKey,
-  refreshTokenKey,
-  startProactiveTokenRefreshHandler,
+  keys: { accessTokenKey, refreshTokenKey },
 }) => {
-  const syncAuthState = async () => {
-    // Токена нет. Если залогинены, то нужно разлогиниться
-    if (!tokens.isAccessTokenExists()) {
-      if (sessionManager.isAuthenticated.value) {
-        await sessionManager.logout()
-      }
-      return
-    }
+  const handleTokenChange = async () => {
+    const accessToken = tokenService.getAccessToken()
 
-    // Токен есть. Если аутентифицированы, то обновляем таймер
-    if (sessionManager.isAuthenticated.value) {
-      startProactiveTokenRefreshHandler?.()
-      return
-    }
-
-    // Токен есть. Обновляем сессию. Если не аутентифицированы, то пробуем аутентифицироваться
-    await sessions.refresh()
-
-    if (sessionManager.isAuthenticated.value) {
-      startProactiveTokenRefreshHandler?.()
+    if (accessToken && !sessionManager.isAuthenticated.value) {
+      await sessionManager.restoreSession()
+    } else {
+      await sessionManager.clear()
     }
   }
 
   window.addEventListener('storage', async event => {
     if (event.key === accessTokenKey || event.key === refreshTokenKey) {
-      await syncAuthState()
+      await handleTokenChange()
     }
   })
 }

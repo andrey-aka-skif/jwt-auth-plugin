@@ -21,6 +21,16 @@ export const createTokenService = ({
     failedQueue = []
   }
 
+  const decodeJwt = token => {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      return JSON.parse(window.atob(base64))
+    } catch {
+      return null
+    }
+  }
+
   const refreshTokens = async () => {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
@@ -61,6 +71,14 @@ export const createTokenService = ({
     } finally {
       isRefreshing = false
     }
+  }
+
+  const getAccessTokenRemainingLifetime = () => {}
+
+  const isAccessTokenExpired = () => {}
+
+  const shouldRefreshToken = thresholdMs => {
+    return getAccessTokenRemainingLifetime() < thresholdMs
   }
 
   return {

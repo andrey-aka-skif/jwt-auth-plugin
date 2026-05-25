@@ -21,6 +21,7 @@ export const mergeConfigs = (target, source) => {
   return output
 }
 
+// удалить
 const decodeJwt = token => {
   try {
     const base64Url = token.split('.')[1]

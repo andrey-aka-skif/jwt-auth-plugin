@@ -76,12 +76,12 @@ export const createJwtAuthViaAxios = ({
   })
 
   setupCrossTabSync({
+    tokenService,
     sessionManager,
-    tokens: tokenService,
-    session: sessionManager,
-    accessTokenKey: config.token.access.storageKey,
-    refreshTokenKey: config.token.refresh.storageKey,
-    startProactiveTokenRefreshHandler: startProactiveTokenRefresh_,
+    keys: {
+      accessTokenKey: config.token.access.storageKey,
+      refreshTokenKey: config.token.refresh.storageKey,
+    },
   })
 
   const _auth = {

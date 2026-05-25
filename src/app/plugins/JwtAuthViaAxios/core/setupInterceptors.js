@@ -4,6 +4,7 @@ export const setupInterceptors = ({
   axiosInstance,
   tokenService,
   sessionManager,
+  onRefreshFailure,
   accessTokenResponseKey,
   accessTokenRequestKey,
 }) => {
@@ -21,7 +22,8 @@ export const setupInterceptors = ({
         return axiosInstance(originalRequest)
       } catch (refreshError) {
         if (refreshError instanceof RefreshTokenError) {
-          sessionManager.onAuthFailure()
+          sessionManager.onAuthFailure() // убрать?
+          onRefreshFailure?.()
         }
 
         return Promise.reject(refreshError)
