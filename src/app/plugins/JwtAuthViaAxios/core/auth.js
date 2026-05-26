@@ -37,17 +37,23 @@ export const createJwtAuthViaAxios = ({
   const tokenService = createTokenService({
     tokenStorage,
     api,
-    accessTokenResponseKey: config.token.access.requestKey,
-    refreshTokenResponseKey: config.token.refresh.requestKey,
+    accessTokenExpirationThresholdMs:
+      config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
+    keys: {
+      accessTokenResponseKey: config.token.access.requestKey,
+      refreshTokenResponseKey: config.token.refresh.requestKey,
+    },
   })
 
   const sessionManager = createSessionManager({
     api,
     tokenService,
-    // redirectOnNotAuthenticatedHandler: tryRedirect,
-    // redirectOnAuthenticatedHandler: tryRedirect,
-    accessTokenResponseKey: config.token.access.responseKey,
-    refreshTokenResponseKey: config.token.refresh.responseKey,
+    onAuthenticated: () => tryRedirect(),
+    onUnauthenticated: () => tryRedirect(),
+    keys: {
+      accessTokenResponseKey: config.token.access.responseKey,
+      refreshTokenResponseKey: config.token.refresh.responseKey,
+    },
   })
 
   const { tryRedirect } = createRedirectRules({ sessionManager, router })
@@ -63,9 +69,12 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
-    sessionManager,
-    accessTokenResponseKey: config.token.access.requestKey,
-    accessTokenRequestKey: config.token.access.requestKey,
+    onRefreshFailure: () => {
+      console.log('onRefreshFailure')
+    },
+    keys: {
+      accessTokenRequestKey: config.token.access.requestKey,
+    },
   })
 
   setupRoutingGuards({

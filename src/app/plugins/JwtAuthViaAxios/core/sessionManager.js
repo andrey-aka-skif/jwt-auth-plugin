@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { AuthenticationError } from './AuthenticationError'
 
 export const createSessionManager = ({
@@ -6,13 +6,12 @@ export const createSessionManager = ({
   tokenService,
   onAuthenticated,
   onUnauthenticated,
-  accessTokenResponseKey,
-  refreshTokenResponseKey,
+  keys: { accessTokenResponseKey, refreshTokenResponseKey },
 }) => {
   const user = ref(null)
   const isReady = ref(false)
 
-  const isAuthenticated = () => !!user.value
+  const isAuthenticated = computed(() => !!user.value)
 
   const login = async credentials => {
     const response = await api.login(credentials)

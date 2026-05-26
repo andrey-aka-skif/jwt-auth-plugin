@@ -3,34 +3,35 @@ import { RefreshTokenError } from './RefreshTokenError'
 export const setupInterceptors = ({
   axiosInstance,
   tokenService,
-  sessionManager,
   onRefreshFailure,
-  accessTokenResponseKey,
-  accessTokenRequestKey,
+  keys: { accessTokenRequestKey },
 }) => {
   const handleResponseError = async error => {
     const originalRequest = error.config
 
     if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-
-      try {
-        const { accessToken } = await tokenService.refreshTokens()
-
-        originalRequest.headers[accessTokenRequestKey] = `Bearer ${accessToken}`
-
-        return axiosInstance(originalRequest)
-      } catch (refreshError) {
-        if (refreshError instanceof RefreshTokenError) {
-          sessionManager.onAuthFailure() // убрать?
-          onRefreshFailure?.()
-        }
-
-        return Promise.reject(refreshError)
-      }
+      return handleUnauthorizedError(originalRequest)
     }
 
     return Promise.reject(error)
+  }
+
+  const handleUnauthorizedError = async originalRequest => {
+    originalRequest._retry = true
+
+    try {
+      const { accessToken } = await tokenService.refreshTokens()
+
+      originalRequest.headers[accessTokenRequestKey] = `Bearer ${accessToken}`
+
+      return axiosInstance(originalRequest)
+    } catch (refreshError) {
+      if (refreshError instanceof RefreshTokenError) {
+        onRefreshFailure?.()
+      }
+
+      return Promise.reject(refreshError)
+    }
   }
 
   axiosInstance.interceptors.response.use(

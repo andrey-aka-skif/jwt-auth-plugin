@@ -3,8 +3,8 @@ import { RefreshTokenError } from './RefreshTokenError'
 export const createTokenService = ({
   tokenStorage,
   api,
-  accessTokenResponseKey,
-  refreshTokenResponseKey,
+  accessTokenExpirationThresholdMs,
+  keys: { accessTokenResponseKey, refreshTokenResponseKey },
 }) => {
   let isRefreshing = false
   let failedQueue = []
@@ -21,7 +21,7 @@ export const createTokenService = ({
     failedQueue = []
   }
 
-  const decodeJwt = token => {
+  const decodeToken = token => {
     try {
       const base64Url = token.split('.')[1]
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -73,16 +73,37 @@ export const createTokenService = ({
     }
   }
 
-  const getAccessTokenRemainingLifetime = () => {}
+  const getAccessTokenExpiration = () => {
+    const token = tokenStorage.getAccessToken()
 
-  const isAccessTokenExpired = () => {}
+    if (!token) {
+      return null
+    }
 
-  const shouldRefreshToken = thresholdMs => {
+    const decoded = decodeToken(token)
+
+    return decoded?.exp ? decoded.exp * 1000 : null
+  }
+
+  const getAccessTokenRemainingLifetime = () => {
+    const expiration = getAccessTokenExpiration()
+
+    if (!expiration) {
+      return 0
+    }
+
+    return expiration - Date.now()
+  }
+
+  const shouldRefreshToken = (
+    thresholdMs = accessTokenExpirationThresholdMs
+  ) => {
     return getAccessTokenRemainingLifetime() < thresholdMs
   }
 
   return {
     ...tokenStorage,
     refreshTokens,
+    shouldRefreshToken,
   }
 }

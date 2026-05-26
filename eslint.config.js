@@ -38,6 +38,7 @@ export default defineConfig([
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-alert': 'error',
       'no-debugger': 'error',
+      'no-return-await': 'error',
     },
   },
 ])
