@@ -32,6 +32,7 @@ const decodeJwt = token => {
   }
 }
 
+// удалить
 export const getTokenRemainingLifetimeMs = token => {
   const decoded = decodeJwt(token)
   if (!decoded?.exp) {

@@ -2,6 +2,8 @@
 
 export const createRedirectRules = ({ sessionManager, router }) => {
   const tryRedirect = () => {
+    console.log('tryRedirect')
+
     const redirectOnAuthenticated =
       router.currentRoute.value?.meta?.redirectOnAuthenticated
 

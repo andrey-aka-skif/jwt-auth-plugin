@@ -30,8 +30,10 @@ export const createJwtAuthViaAxios = ({
   }
 
   const tokenStorage = createTokenStorage({
-    accessTokenStorageKey: config.token.access.storageKey,
-    refreshTokenStorageKey: config.token.refresh.storageKey,
+    keys: {
+      accessTokenStorageKey: config.token.access.storageKey,
+      refreshTokenStorageKey: config.token.refresh.storageKey,
+    },
   })
 
   const tokenService = createTokenService({
@@ -40,8 +42,8 @@ export const createJwtAuthViaAxios = ({
     accessTokenExpirationThresholdMs:
       config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
     keys: {
-      accessTokenResponseKey: config.token.access.requestKey,
-      refreshTokenResponseKey: config.token.refresh.requestKey,
+      accessTokenResponseKey: config.token.access.responseKey,
+      refreshTokenResponseKey: config.token.refresh.responseKey,
     },
   })
 

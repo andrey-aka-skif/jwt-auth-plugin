@@ -1,6 +1,5 @@
 export const createTokenStorage = ({
-  accessTokenStorageKey,
-  refreshTokenStorageKey,
+  keys: { accessTokenStorageKey, refreshTokenStorageKey },
 }) => {
   const saveTokenPair = async ({ accessToken, refreshToken }) => {
     localStorage.setItem(accessTokenStorageKey, accessToken)
