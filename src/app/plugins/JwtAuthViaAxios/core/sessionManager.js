@@ -58,6 +58,7 @@ export const createSessionManager = ({
     onUnauthenticated?.()
   }
 
+  // Нужно ли или оставить только clear()?
   const onAuthFailure = () => {
     clear()
   }

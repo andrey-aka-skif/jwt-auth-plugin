@@ -11,6 +11,7 @@ import { createSessionManager } from './sessionManager'
 import { createRedirectRules } from './redirectRules'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
+import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
 
 // удалить
 const addRoutingGuards = ({ router, config }) => {
@@ -58,7 +59,11 @@ export const createJwtAuthViaAxios = ({
     },
   })
 
-  const { tryRedirect } = createRedirectRules({ sessionManager, router })
+  const { tryRedirect } = createRedirectRules({
+    sessionManager,
+    router,
+    redirect: config.redirect,
+  })
 
   const initialize_ = async () => {
     console.log('initialize...')
@@ -71,9 +76,8 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
-    onRefreshFailure: () => {
-      console.log('onRefreshFailure')
-    },
+    // onRefreshFailure: () => tryRedirect(),
+    onRefreshFailure: () => sessionManager.onAuthFailure(),
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -94,6 +98,8 @@ export const createJwtAuthViaAxios = ({
       refreshTokenKey: config.token.refresh.storageKey,
     },
   })
+
+  createTokenRefreshScheduler(tokenService, sessionManager, api)
 
   const _auth = {
     login: sessionManager.login,
