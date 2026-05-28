@@ -39,6 +39,8 @@ export const createSessionManager = ({
   }
 
   const restoreSession = async () => {
+    console.log('restoreSession')
+
     try {
       const me = await api.me()
       user.value = me.data
@@ -53,6 +55,8 @@ export const createSessionManager = ({
   }
 
   const clear = () => {
+    console.log('clear')
+
     tokenService.clearTokens()
     user.value = null
     isReady.value = true
