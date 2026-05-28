@@ -13,11 +13,6 @@ import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
 
-// удалить
-const addRoutingGuards = ({ router, config }) => {
-  // router.beforeEach
-}
-
 export const createJwtAuthViaAxios = ({
   router,
   axiosInstance,
@@ -30,14 +25,21 @@ export const createJwtAuthViaAxios = ({
     api = createDefaultApiAdapter({ axiosInstance, config })
   }
 
-  const tokenStorage = createTokenStorage({
+  let tokenStorage = null
+  let tokenRefreshScheduler = null
+  let tokenService = null
+  let sessionManager = null
+  let redirectRules = null
+  let tryRedirect = null
+
+  tokenStorage = createTokenStorage({
     keys: {
       accessTokenStorageKey: config.token.access.storageKey,
       refreshTokenStorageKey: config.token.refresh.storageKey,
     },
   })
 
-  const tokenService = createTokenService({
+  tokenService = createTokenService({
     tokenStorage,
     api,
     accessTokenExpirationThresholdMs:
@@ -48,36 +50,34 @@ export const createJwtAuthViaAxios = ({
     },
   })
 
-  const sessionManager = createSessionManager({
+  sessionManager = createSessionManager({
     api,
     tokenService,
-    onAuthenticated: () => tryRedirect(),
-    onUnauthenticated: () => tryRedirect(),
+    onAuthenticated: () => {
+      tokenRefreshScheduler.start()
+      tryRedirect()
+    },
+    onUnauthenticated: () => {
+      tokenRefreshScheduler.stop()
+      tryRedirect()
+    },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
     },
   })
 
-  const { tryRedirect } = createRedirectRules({
+  redirectRules = createRedirectRules({
     sessionManager,
     router,
     redirect: config.redirect,
   })
-
-  const initialize_ = async () => {
-    console.log('initialize...')
-  }
-
-  const startProactiveTokenRefresh_ = () => {
-    console.log('startProactiveTokenRefresh...')
-  }
+  tryRedirect = redirectRules.tryRedirect
 
   setupInterceptors({
     axiosInstance,
     tokenService,
-    // onRefreshFailure: () => tryRedirect(),
-    onRefreshFailure: () => sessionManager.onAuthFailure(),
+    onRefreshFailure: () => sessionManager.clear(),
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -86,7 +86,6 @@ export const createJwtAuthViaAxios = ({
   setupRoutingGuards({
     router,
     sessionManager,
-    initializeHandler: initialize_,
     redirect: config.redirect,
   })
 
@@ -94,12 +93,14 @@ export const createJwtAuthViaAxios = ({
     tokenService,
     sessionManager,
     keys: {
-      accessTokenKey: config.token.access.storageKey,
-      refreshTokenKey: config.token.refresh.storageKey,
+      accessTokenStorageKey: config.token.access.storageKey,
     },
   })
 
-  createTokenRefreshScheduler(tokenService, sessionManager, api)
+  tokenRefreshScheduler = createTokenRefreshScheduler({
+    tokenService,
+    intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
+  })
 
   const _auth = {
     login: sessionManager.login,
@@ -110,7 +111,7 @@ export const createJwtAuthViaAxios = ({
   }
 
   if (config.plugin.autoStart) {
-    initialize_().catch(error => {
+    sessionManager.initialize().catch(error => {
       console.error('Ошибка при инициализации аутентификации', error.message)
     })
   }
@@ -124,10 +125,6 @@ export const createJwtAuthViaAxios = ({
       axiosInstance,
       endpoints: config.endpoints,
     })
-  }
-
-  if (router) {
-    addRoutingGuards({ router, config })
   }
 
   if (!axiosInstance) {

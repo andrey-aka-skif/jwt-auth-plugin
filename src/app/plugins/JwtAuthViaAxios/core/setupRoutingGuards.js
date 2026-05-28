@@ -1,12 +1,7 @@
-export const setupRoutingGuards = ({
-  router,
-  sessionManager,
-  redirect,
-  initializeHandler,
-}) => {
+export const setupRoutingGuards = ({ router, sessionManager, redirect }) => {
   router.beforeEach(async (to, from, next) => {
     if (!sessionManager.isReady.value) {
-      await initializeHandler?.()
+      await sessionManager.initialize()
     }
 
     const requireAuth = to.matched.reduceRight(

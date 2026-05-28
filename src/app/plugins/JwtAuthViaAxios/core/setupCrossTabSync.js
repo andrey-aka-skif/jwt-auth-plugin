@@ -1,7 +1,7 @@
 export const setupCrossTabSync = ({
   tokenService,
   sessionManager,
-  keys: { accessTokenStorageKey, refreshTokenStorageKey },
+  keys: { accessTokenStorageKey },
 }) => {
   const handleTokenChange = async () => {
     const accessToken = tokenService.getAccessToken()
@@ -14,10 +14,7 @@ export const setupCrossTabSync = ({
   }
 
   window.addEventListener('storage', async event => {
-    if (
-      event.key === accessTokenStorageKey ||
-      event.key === refreshTokenStorageKey // нужно ли на него смотреть?
-    ) {
+    if (event.key === accessTokenStorageKey) {
       await handleTokenChange()
     }
   })

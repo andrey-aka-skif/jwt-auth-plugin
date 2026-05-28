@@ -1,52 +1,23 @@
-export const createTokenRefreshScheduler = ({
-  tokenService,
-  sessionManager,
-  api,
-}) => {
+export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   let refreshTimer = null
-  let initializationPromise = null
 
-  const restoreSession = async () => {
+  const tick = async () => {
     try {
-      await tokenService.ensureFreshTokens()
-
-      const me = await api.me()
-
-      sessionManager.setUser(me.data)
-
-      return true
-    } catch {
-      sessionManager.clear()
-
-      return false
-    }
-  }
-
-  const initialize = async () => {
-    if (initializationPromise) {
-      return initializationPromise
-    }
-
-    initializationPromise = restoreSession().finally(() => {
-      sessionManager.setReady(true)
-    })
-
-    return initializationPromise
-  }
-
-  const startProactiveRefresh = () => {
-    stopProactiveRefresh()
-
-    refreshTimer = setInterval(async () => {
-      try {
-        await tokenService.ensureFreshTokens()
-      } catch {
-        sessionManager.clear()
+      if (tokenService.shouldRefreshToken()) {
+        await tokenService.refreshTokens()
       }
-    }, 1000 * 30)
+    } catch {
+      // nothing
+    }
   }
 
-  const stopProactiveRefresh = () => {
+  const start = () => {
+    stop()
+
+    refreshTimer = setInterval(tick, intervalMs)
+  }
+
+  const stop = () => {
     if (refreshTimer) {
       clearInterval(refreshTimer)
       refreshTimer = null
@@ -54,9 +25,7 @@ export const createTokenRefreshScheduler = ({
   }
 
   return {
-    initialize,
-    restoreSession,
-    startProactiveRefresh,
-    stopProactiveRefresh,
+    start,
+    stop,
   }
 }

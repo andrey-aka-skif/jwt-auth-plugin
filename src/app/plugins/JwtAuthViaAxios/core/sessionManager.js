@@ -8,6 +8,8 @@ export const createSessionManager = ({
   onUnauthenticated,
   keys: { accessTokenResponseKey, refreshTokenResponseKey },
 }) => {
+  let initializationPromise = null
+
   const user = ref(null)
   const isReady = ref(false)
 
@@ -58,24 +60,19 @@ export const createSessionManager = ({
     onUnauthenticated?.()
   }
 
-  // Нужно ли или оставить только clear()?
-  const onAuthFailure = () => {
-    clear()
-  }
-
   const initialize = async () => {
-    console.log('initialize')
+    if (initializationPromise) {
+      return initializationPromise
+    }
 
-    try {
-      if (tokenService.isAccessTokenExist()) {
-        await restoreSession()
-      } else {
-        clear()
+    initializationPromise = async () => {
+      try {
+        if (tokenService.isAccessTokenExist()) {
+          await restoreSession()
+        }
+      } finally {
+        isReady.value = true
       }
-    } catch {
-      clear()
-    } finally {
-      isReady.value = true
     }
   }
 
@@ -87,7 +84,6 @@ export const createSessionManager = ({
     logout,
     restoreSession,
     clear,
-    onAuthFailure,
     initialize,
   }
 }
