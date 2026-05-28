@@ -101,9 +101,14 @@ export const createTokenService = ({
     return getAccessTokenRemainingLifetime() < thresholdMs
   }
 
+  const isAccessTokenExist = () => {
+    return !!tokenStorage.getAccessToken()
+  }
+
   return {
     ...tokenStorage,
     refreshTokens,
     shouldRefreshToken,
+    isAccessTokenExist,
   }
 }

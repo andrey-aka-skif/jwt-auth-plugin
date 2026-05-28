@@ -26,8 +26,6 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
-      console.error('refreshError', refreshError)
-
       if (refreshError instanceof RefreshTokenError) {
         onRefreshFailure?.()
       }

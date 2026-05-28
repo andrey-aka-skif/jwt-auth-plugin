@@ -63,6 +63,22 @@ export const createSessionManager = ({
     clear()
   }
 
+  const initialize = async () => {
+    console.log('initialize')
+
+    try {
+      if (tokenService.isAccessTokenExist()) {
+        await restoreSession()
+      } else {
+        clear()
+      }
+    } catch {
+      clear()
+    } finally {
+      isReady.value = true
+    }
+  }
+
   return {
     user,
     isAuthenticated,
@@ -72,5 +88,6 @@ export const createSessionManager = ({
     restoreSession,
     clear,
     onAuthFailure,
+    initialize,
   }
 }
