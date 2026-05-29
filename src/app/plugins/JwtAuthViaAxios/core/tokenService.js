@@ -1,4 +1,5 @@
 import { RefreshTokenError } from './RefreshTokenError'
+import { __timedDebug__ } from './utils'
 
 export const createTokenService = ({
   tokenStorage,
@@ -32,6 +33,8 @@ export const createTokenService = ({
   }
 
   const refreshTokens = async () => {
+    __timedDebug__()
+
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })

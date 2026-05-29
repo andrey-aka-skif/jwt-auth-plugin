@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { AuthenticationError } from './AuthenticationError'
+import { __timedDebug__ } from './utils'
 
 export const createSessionManager = ({
   api,
@@ -16,6 +17,8 @@ export const createSessionManager = ({
   const isAuthenticated = computed(() => !!user.value)
 
   const login = async credentials => {
+    __timedDebug__()
+
     const response = await api.login(credentials)
 
     tokenService.saveTokenPair({
@@ -27,6 +30,8 @@ export const createSessionManager = ({
   }
 
   const logout = async () => {
+    __timedDebug__()
+
     const refreshToken = tokenService.getRefreshToken()
 
     try {
@@ -39,7 +44,7 @@ export const createSessionManager = ({
   }
 
   const restoreSession = async () => {
-    console.log('restoreSession')
+    __timedDebug__()
 
     try {
       const me = await api.me()
@@ -55,7 +60,7 @@ export const createSessionManager = ({
   }
 
   const clear = () => {
-    console.log('clear')
+    __timedDebug__()
 
     tokenService.clearTokens()
     user.value = null
@@ -68,6 +73,8 @@ export const createSessionManager = ({
     if (initializationPromise) {
       return initializationPromise
     }
+
+    __timedDebug__()
 
     initializationPromise = async () => {
       try {

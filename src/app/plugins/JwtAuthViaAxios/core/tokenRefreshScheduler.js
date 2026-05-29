@@ -1,3 +1,5 @@
+import { __timedDebug__ } from './utils'
+
 export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   let refreshTimer = null
 
@@ -12,12 +14,16 @@ export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   }
 
   const start = () => {
+    __timedDebug__()
+
     stop()
 
     refreshTimer = setInterval(tick, intervalMs)
   }
 
   const stop = () => {
+    __timedDebug__()
+
     if (refreshTimer) {
       clearInterval(refreshTimer)
       refreshTimer = null

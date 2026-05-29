@@ -1,3 +1,5 @@
+import { __timedDebug__ } from './utils'
+
 export const setupCrossTabSync = ({
   tokenService,
   sessionManager,
@@ -15,6 +17,7 @@ export const setupCrossTabSync = ({
 
   window.addEventListener('storage', async event => {
     if (event.key === accessTokenStorageKey) {
+      __timedDebug__()
       await handleTokenChange()
     }
   })
