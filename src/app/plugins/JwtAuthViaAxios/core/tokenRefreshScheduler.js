@@ -6,6 +6,8 @@ export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   const tick = async () => {
     try {
       if (tokenService.shouldRefreshToken()) {
+        __timedDebug__('tick планировщика рефреша')
+
         await tokenService.refreshTokens()
       }
     } catch {
@@ -14,17 +16,16 @@ export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   }
 
   const start = () => {
-    __timedDebug__()
-
     stop()
+
+    __timedDebug__('Запущен планировщик рефреша токенов')
 
     refreshTimer = setInterval(tick, intervalMs)
   }
 
   const stop = () => {
-    __timedDebug__()
-
     if (refreshTimer) {
+      __timedDebug__('Остановлен планировщик рефреша токенов')
       clearInterval(refreshTimer)
       refreshTimer = null
     }

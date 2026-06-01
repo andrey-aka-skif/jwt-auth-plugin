@@ -33,7 +33,7 @@ export const createTokenService = ({
   }
 
   const refreshTokens = async () => {
-    __timedDebug__()
+    __timedDebug__('Рефреш токенов в сервисе токенов')
 
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
@@ -69,6 +69,11 @@ export const createTokenService = ({
         error instanceof RefreshTokenError ? error : new RefreshTokenError()
 
       processQueue(refreshError, null)
+
+      __timedDebug__(
+        'ОШИБКА при рефреше токена. Зажигаем refreshError:',
+        refreshError
+      )
 
       throw refreshError
     } finally {

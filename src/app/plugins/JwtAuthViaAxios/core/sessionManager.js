@@ -54,6 +54,13 @@ export const createSessionManager = ({
       if (error instanceof AuthenticationError) {
         clear()
       }
+
+      __timedDebug__(
+        'Ошибка в restoreSession:',
+        error,
+        'error instanceof AuthenticationError:',
+        error instanceof AuthenticationError
+      )
     } finally {
       isReady.value = true
     }
