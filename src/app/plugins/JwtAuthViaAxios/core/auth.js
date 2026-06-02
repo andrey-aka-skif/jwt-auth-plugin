@@ -12,6 +12,7 @@ import { createRedirectRules } from './redirectRules'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
+import { __timedDebug__ } from './debug'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -30,7 +31,6 @@ export const createJwtAuthViaAxios = ({
   let tokenService = null
   let sessionManager = null
   let redirectRules = null
-  let tryRedirect = null
 
   tokenStorage = createTokenStorage({
     keys: {
@@ -42,6 +42,10 @@ export const createJwtAuthViaAxios = ({
   tokenService = createTokenService({
     tokenStorage,
     api,
+    onRefreshFailure: () => {
+      sessionManager.clear()
+      redirectRules.tryRedirect()
+    },
     accessTokenExpirationThresholdMs:
       config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
     keys: {
@@ -54,12 +58,12 @@ export const createJwtAuthViaAxios = ({
     api,
     tokenService,
     onAuthenticated: () => {
-      tokenRefreshScheduler.start()
-      tryRedirect()
+      tokenRefreshScheduler?.start()
+      redirectRules?.tryRedirect()
     },
     onUnauthenticated: () => {
       tokenRefreshScheduler.stop()
-      tryRedirect()
+      redirectRules.tryRedirect()
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
@@ -72,12 +76,14 @@ export const createJwtAuthViaAxios = ({
     router,
     redirect: config.redirect,
   })
-  tryRedirect = redirectRules.tryRedirect
 
   setupInterceptors({
     axiosInstance,
     tokenService,
-    onRefreshFailure: () => sessionManager.clear(),
+    onRefreshFailure: () => {
+      sessionManager.clear()
+      redirectRules.tryRedirect()
+    },
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -97,10 +103,12 @@ export const createJwtAuthViaAxios = ({
     },
   })
 
-  tokenRefreshScheduler = createTokenRefreshScheduler({
-    tokenService,
-    intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
-  })
+  if (config.plugin.autoRefresh) {
+    tokenRefreshScheduler = createTokenRefreshScheduler({
+      tokenService,
+      intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
+    })
+  }
 
   const _auth = {
     login: sessionManager.login,
@@ -111,6 +119,8 @@ export const createJwtAuthViaAxios = ({
   }
 
   if (config.plugin.autoStart) {
+    __timedDebug__('config.plugin.autoStart:', config.plugin.autoStart)
+
     sessionManager.initialize().catch(error => {
       console.error('Ошибка при инициализации аутентификации', error.message)
     })

@@ -4,6 +4,7 @@ import { __timedDebug__ } from './debug'
 export const createTokenService = ({
   tokenStorage,
   api,
+  onRefreshFailure,
   accessTokenExpirationThresholdMs,
   keys: { accessTokenResponseKey, refreshTokenResponseKey },
 }) => {
@@ -74,6 +75,8 @@ export const createTokenService = ({
         'ОШИБКА при рефреше токена. Зажигаем refreshError:',
         refreshError
       )
+
+      onRefreshFailure?.()
 
       throw refreshError
     } finally {

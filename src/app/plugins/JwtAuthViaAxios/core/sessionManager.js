@@ -83,15 +83,22 @@ export const createSessionManager = ({
 
     __timedDebug__()
 
-    initializationPromise = async () => {
+    initializationPromise = (async () => {
       try {
+        __timedDebug__('Выполнение промиса в initialize')
+
         if (tokenService.isAccessTokenExist()) {
           await restoreSession()
         }
+      } catch (error) {
+        __timedDebug__(error)
       } finally {
         isReady.value = true
+        __timedDebug__('finally. isReady.value:', isReady.value)
       }
-    }
+    })()
+
+    return initializationPromise
   }
 
   return {

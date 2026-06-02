@@ -1,8 +1,14 @@
+import { __timedDebug__ } from './debug'
+
 export const setupRoutingGuards = ({ router, sessionManager, redirect }) => {
   router.beforeEach(async (to, from, next) => {
+    __timedDebug__('sessionManager.isReady', sessionManager.isReady.value)
+
     if (!sessionManager.isReady.value) {
       await sessionManager.initialize()
     }
+
+    __timedDebug__('sessionManager.isReady', sessionManager.isReady.value)
 
     const requireAuth = to.matched.reduceRight(
       (value, record) =>

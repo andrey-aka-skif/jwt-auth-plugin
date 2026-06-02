@@ -1,3 +1,4 @@
+import { __timedDebug__ } from './debug'
 import { RefreshTokenError } from './RefreshTokenError'
 
 export const setupInterceptors = ({
@@ -26,6 +27,13 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
+      __timedDebug__(
+        'ОШИБКА при рефреше токена в ИНТЕРСЕПТОРЕ:',
+        refreshError,
+        'refreshError instanceof RefreshTokenError:',
+        refreshError instanceof RefreshTokenError
+      )
+
       if (refreshError instanceof RefreshTokenError) {
         onRefreshFailure?.()
       }

@@ -17,7 +17,7 @@ export const setupCrossTabSync = ({
 
   window.addEventListener('storage', async event => {
     if (event.key === accessTokenStorageKey) {
-      __timedDebug__()
+      __timedDebug__('В другой вкладке произошло изменение токенов в хранилище')
       await handleTokenChange()
     }
   })

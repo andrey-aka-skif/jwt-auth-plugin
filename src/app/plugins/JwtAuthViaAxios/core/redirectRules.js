@@ -4,14 +4,14 @@ import { __timedDebug__ } from './debug'
 
 export const createRedirectRules = ({ sessionManager, router, redirect }) => {
   const tryRedirect = () => {
-    __timedDebug__()
-
     const redirectOnAuthenticated =
       router.currentRoute.value?.meta?.redirectOnAuthenticated
 
     const redirectOnNotAuthenticated =
       router.currentRoute.value?.meta?.redirectOnNotAuthenticated ||
       redirect?.onNotAuthenticated
+
+    __timedDebug__(router.currentRoute.value, redirectOnAuthenticated)
 
     if (sessionManager.isAuthenticated.value && redirectOnAuthenticated) {
       router.push(redirectOnAuthenticated)
