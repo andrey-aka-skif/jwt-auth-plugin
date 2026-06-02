@@ -4,7 +4,6 @@ import { RefreshTokenError } from './RefreshTokenError'
 export const setupInterceptors = ({
   axiosInstance,
   tokenService,
-  onRefreshFailure,
   keys: { accessTokenRequestKey },
 }) => {
   const handleResponseError = async error => {
@@ -35,10 +34,6 @@ export const setupInterceptors = ({
         'refreshError instanceof RefreshTokenError:',
         refreshError instanceof RefreshTokenError
       )
-
-      if (refreshError instanceof RefreshTokenError) {
-        onRefreshFailure?.()
-      }
 
       return Promise.reject(refreshError)
     }

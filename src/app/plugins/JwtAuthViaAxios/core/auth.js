@@ -54,6 +54,7 @@ export const createJwtAuthViaAxios = ({
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
+      lockKey: config.token.refresh.lockKey,
     },
   })
 
@@ -87,10 +88,6 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
-    // onRefreshFailure: () => {
-    //   sessionManager.clear()
-    //   redirectRules.tryRedirect()
-    // },
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -126,8 +123,6 @@ export const createJwtAuthViaAxios = ({
   }
 
   if (config.plugin.autoStart) {
-    __timedDebug__('config.plugin.autoStart:', config.plugin.autoStart)
-
     sessionManager.initialize().catch(error => {
       console.error('Ошибка при инициализации аутентификации', error.message)
     })

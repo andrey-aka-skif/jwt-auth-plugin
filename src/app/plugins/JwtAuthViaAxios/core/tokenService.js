@@ -6,7 +6,7 @@ export const createTokenService = ({
   api,
   onRefreshFailure,
   accessTokenExpirationThresholdMs,
-  keys: { accessTokenResponseKey, refreshTokenResponseKey },
+  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey },
 }) => {
   let isRefreshing = false
   let failedQueue = []
@@ -63,11 +63,10 @@ export const createTokenService = ({
       processQueue(null, tokens)
 
       return tokens
-    } catch (error) {
+    } catch {
       tokenStorage.clearTokens()
 
-      const refreshError =
-        error instanceof RefreshTokenError ? error : new RefreshTokenError()
+      const refreshError = new RefreshTokenError()
 
       processQueue(refreshError, null)
 
@@ -84,6 +83,10 @@ export const createTokenService = ({
     } finally {
       isRefreshing = false
     }
+  }
+
+  const refreshTokensWithLock = async () => {
+    return navigator.locks.request(lockKey, async () => refreshTokens())
   }
 
   const getAccessTokenExpiration = () => {
@@ -120,7 +123,7 @@ export const createTokenService = ({
 
   return {
     ...tokenStorage,
-    refreshTokens,
+    refreshTokens: refreshTokensWithLock,
     shouldRefreshToken,
     isAccessTokenExist,
   }

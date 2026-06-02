@@ -4,7 +4,7 @@ export const DEFAULT_CONFIG = {
   },
   plugin: {
     autoStart: true,
-    autoRefresh: false,
+    autoRefresh: true,
   },
   endpoints: {
     login: '/auth/login',
