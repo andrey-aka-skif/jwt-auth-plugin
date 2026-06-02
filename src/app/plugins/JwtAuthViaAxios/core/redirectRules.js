@@ -1,4 +1,4 @@
-// возможно, это часть setupRoutingGuards?
+// возможно, стоит переиеновать и отрефакторить этот файл?
 
 import { __timedDebug__ } from './debug'
 

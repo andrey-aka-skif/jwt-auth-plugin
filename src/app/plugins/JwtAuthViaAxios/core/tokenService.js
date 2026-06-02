@@ -78,6 +78,8 @@ export const createTokenService = ({
 
       onRefreshFailure?.()
 
+      __timedDebug__('try throw refreshError')
+
       throw refreshError
     } finally {
       isRefreshing = false

@@ -11,6 +11,7 @@ export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
         await tokenService.refreshTokens()
       }
     } catch {
+      __timedDebug__('Шедулер перехватил ошибку')
       // nothing
     }
   }

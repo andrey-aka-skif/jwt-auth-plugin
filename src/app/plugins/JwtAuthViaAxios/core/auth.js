@@ -31,6 +31,7 @@ export const createJwtAuthViaAxios = ({
   let tokenService = null
   let sessionManager = null
   let redirectRules = null
+  // Как сообщить об ошибке?
 
   tokenStorage = createTokenStorage({
     keys: {
@@ -43,6 +44,8 @@ export const createJwtAuthViaAxios = ({
     tokenStorage,
     api,
     onRefreshFailure: () => {
+      __timedDebug__('createTokenService. onRefreshFailure')
+
       sessionManager.clear()
       redirectRules.tryRedirect()
     },
@@ -57,12 +60,16 @@ export const createJwtAuthViaAxios = ({
   sessionManager = createSessionManager({
     api,
     tokenService,
-    onAuthenticated: () => {
+    onRestoreSession: () => {
+      __timedDebug__('createSessionManager. onRestoreSession')
+
       tokenRefreshScheduler?.start()
       redirectRules?.tryRedirect()
     },
-    onUnauthenticated: () => {
-      tokenRefreshScheduler.stop()
+    onClearSession: () => {
+      __timedDebug__('createSessionManager. onClearSession')
+
+      tokenRefreshScheduler?.stop()
       redirectRules.tryRedirect()
     },
     keys: {
@@ -80,10 +87,10 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
-    onRefreshFailure: () => {
-      sessionManager.clear()
-      redirectRules.tryRedirect()
-    },
+    // onRefreshFailure: () => {
+    //   sessionManager.clear()
+    //   redirectRules.tryRedirect()
+    // },
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },

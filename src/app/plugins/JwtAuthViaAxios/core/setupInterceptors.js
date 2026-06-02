@@ -27,6 +27,8 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
+      __timedDebug__('ИНТЕРСЕПТОР перехватил ошибку')
+
       __timedDebug__(
         'ОШИБКА при рефреше токена в ИНТЕРСЕПТОРЕ:',
         refreshError,

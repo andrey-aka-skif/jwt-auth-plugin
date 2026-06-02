@@ -5,8 +5,8 @@ import { __timedDebug__ } from './debug'
 export const createSessionManager = ({
   api,
   tokenService,
-  onAuthenticated,
-  onUnauthenticated,
+  onRestoreSession,
+  onClearSession,
   keys: { accessTokenResponseKey, refreshTokenResponseKey },
 }) => {
   let initializationPromise = null
@@ -49,7 +49,7 @@ export const createSessionManager = ({
     try {
       const me = await api.me()
       user.value = me.data
-      onAuthenticated?.()
+      onRestoreSession?.()
     } catch (error) {
       if (error instanceof AuthenticationError) {
         clear()
@@ -73,7 +73,7 @@ export const createSessionManager = ({
     user.value = null
     isReady.value = true
 
-    onUnauthenticated?.()
+    onClearSession?.()
   }
 
   const initialize = async () => {
