@@ -35,10 +35,27 @@ export default defineConfig([
     rules: {
       'no-unused-vars': 'warn',
       'prefer-const': 'warn',
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-alert': 'error',
       'no-debugger': 'error',
       'no-return-await': 'error',
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-restricted-imports': [
+        'warn',
+        {
+          patterns: [
+            {
+              group: [
+                '**/debug',
+                '**/debug/**',
+                '**/debug.{js,ts}',
+                '**/debug.*.{js,ts}',
+                '**/debug/**/*.{js,ts}',
+              ],
+              message: 'Импортирован отладочный debug модуль',
+            },
+          ],
+        },
+      ],
     },
   },
 ])

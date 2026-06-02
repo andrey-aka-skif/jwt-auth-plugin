@@ -1,6 +1,6 @@
 // возможно, это часть setupRoutingGuards?
 
-import { __timedDebug__ } from './utils'
+import { __timedDebug__ } from './debug'
 
 export const createRedirectRules = ({ sessionManager, router, redirect }) => {
   const tryRedirect = () => {

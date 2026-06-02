@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
       storageKey: 'refresh_token',
       checkIntervalMinutes: 0.1,
       checkIntervalThresholdMinutes: 0.01,
+      lockKey: 'jwt_refresh_lock',
     },
   },
 }

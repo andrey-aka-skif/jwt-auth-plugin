@@ -1,4 +1,4 @@
-import { __timedDebug__ } from './utils'
+import { __timedDebug__ } from './debug'
 
 export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
   let refreshTimer = null

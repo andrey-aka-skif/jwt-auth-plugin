@@ -1,5 +1,5 @@
 import { RefreshTokenError } from './RefreshTokenError'
-import { __timedDebug__ } from './utils'
+import { __timedDebug__ } from './debug'
 
 export const createTokenService = ({
   tokenStorage,
