@@ -20,7 +20,9 @@ export const setupInterceptors = ({
     originalRequest._retry = true
 
     try {
-      const { accessToken } = await tokenService.refreshTokens()
+      await tokenService.refreshTokens()
+
+      const accessToken = tokenService.getAccessToken()
 
       originalRequest.headers[accessTokenRequestKey] = `Bearer ${accessToken}`
 
