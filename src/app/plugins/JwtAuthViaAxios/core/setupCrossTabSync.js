@@ -15,10 +15,19 @@ export const setupCrossTabSync = ({
     }
   }
 
-  window.addEventListener('storage', async event => {
+  const listener = async event => {
     if (event.key === accessTokenStorageKey) {
-      __timedDebug__('В другой вкладке произошло изменение токенов в хранилище')
+      __timedDebug__('Синхронизация вкладок.........')
+
       await handleTokenChange()
     }
-  })
+  }
+
+  window.addEventListener('storage', listener)
+
+  const unsubscribe = () => {
+    window.removeEventListener('storage', listener)
+  }
+
+  return unsubscribe
 }
