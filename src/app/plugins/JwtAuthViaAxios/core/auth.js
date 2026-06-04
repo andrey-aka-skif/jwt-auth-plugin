@@ -1,4 +1,4 @@
-import { computed, readonly, ref } from 'vue'
+import { readonly } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApiAdapter } from './defaultApiAdapter'
 import { mergeConfigs } from './utils'
