@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { AuthenticationError } from '../errors/AuthenticationError'
 
 export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
   if (!axiosInstance) {
@@ -29,21 +30,36 @@ export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
     )
   }
 
+  const applyErrorDecorator = async fn => {
+    try {
+      return await fn()
+    } catch (error) {
+      if (error.response?.status === 401) {
+        throw new AuthenticationError()
+      }
+      throw error
+    }
+  }
+
   return {
     register(registrationData) {
       return axiosInstance.post(config.endpoints.register, registrationData)
     },
     login(credentials) {
-      return axiosInstance.post(config.endpoints.login, credentials)
+      return applyErrorDecorator(() =>
+        axiosInstance.post(config.endpoints.login, credentials)
+      )
     },
     me() {
-      return axiosInstance.get(config.endpoints.me)
+      return applyErrorDecorator(() => axiosInstance.get(config.endpoints.me))
     },
     logout(refreshToken) {
       return sendRequestWithRefreshToken(config.endpoints.logout, refreshToken)
     },
     refresh(refreshToken) {
-      return sendRequestWithRefreshToken(config.endpoints.refresh, refreshToken)
+      return applyErrorDecorator(() =>
+        sendRequestWithRefreshToken(config.endpoints.refresh, refreshToken)
+      )
     },
   }
 }
