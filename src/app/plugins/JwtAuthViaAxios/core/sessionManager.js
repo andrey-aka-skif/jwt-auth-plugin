@@ -46,6 +46,8 @@ export const createSessionManager = ({
       onRestoreSession?.()
     } catch (error) {
       if (error instanceof AuthenticationError) {
+        __timedDebug__('_______Поймали AuthenticationError:', error)
+
         clear()
       }
 
