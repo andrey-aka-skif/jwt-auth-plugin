@@ -1,4 +1,4 @@
-import { RefreshTokenError } from './RefreshTokenError'
+import { RefreshTokenError } from '../errors/RefreshTokenError'
 import { __timedDebug__ } from './debug'
 
 export const createTokenService = ({

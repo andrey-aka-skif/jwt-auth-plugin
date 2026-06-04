@@ -1,5 +1,5 @@
 import { __timedDebug__ } from './debug'
-import { RefreshTokenError } from './RefreshTokenError'
+import { RefreshTokenError } from '../errors/RefreshTokenError'
 
 export const setupInterceptors = ({
   axiosInstance,

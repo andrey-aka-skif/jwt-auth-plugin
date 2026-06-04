@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { AuthenticationError } from './AuthenticationError'
+import { AuthenticationError } from '../errors/AuthenticationError'
 import { __timedDebug__ } from './debug'
 
 export const createSessionManager = ({
