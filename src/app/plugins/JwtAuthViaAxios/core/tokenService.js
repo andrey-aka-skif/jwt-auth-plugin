@@ -27,7 +27,7 @@ export const createTokenService = ({
     try {
       const base64Url = token.split('.')[1]
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      return JSON.parse(window.atob(base64))
+      return JSON.parse(atob(base64))
     } catch {
       return null
     }
@@ -63,7 +63,9 @@ export const createTokenService = ({
       processQueue(null, tokens)
 
       return tokens
-    } catch {
+    } catch (error) {
+      __timedDebug__('Ожидаем поймать AuthenticationError:', error)
+
       tokenStorage.clearTokens()
 
       const refreshError = new RefreshTokenError()
