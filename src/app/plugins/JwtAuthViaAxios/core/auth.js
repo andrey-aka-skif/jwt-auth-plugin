@@ -6,7 +6,7 @@ import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 import { createTokenService } from './tokenService'
 import { createSessionManager } from './sessionManager'
-import { createRedirectRules } from './redirectRules'
+import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
@@ -28,8 +28,14 @@ export const createJwtAuthViaAxios = ({
   let tokenRefreshScheduler = null
   let tokenService = null
   let sessionManager = null
-  let redirectRules = null
   // Как сообщить об ошибке?
+
+  const maybeAuthRedirectAdapter = () =>
+    maybeAuthRedirect({
+      sessionManager,
+      router,
+      redirectPathes: config.redirect,
+    })
 
   tokenStorage = createTokenStorage({
     keys: {
@@ -45,7 +51,7 @@ export const createJwtAuthViaAxios = ({
       __timedDebug__('createTokenService. onRefreshFailure')
 
       sessionManager.clear()
-      redirectRules.tryRedirect()
+      maybeAuthRedirectAdapter()
     },
     accessTokenExpirationThresholdMs:
       config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
@@ -63,24 +69,18 @@ export const createJwtAuthViaAxios = ({
       __timedDebug__('createSessionManager. onRestoreSession')
 
       tokenRefreshScheduler?.start()
-      redirectRules?.tryRedirect()
+      maybeAuthRedirectAdapter()
     },
     onClearSession: () => {
       __timedDebug__('createSessionManager. onClearSession')
 
       tokenRefreshScheduler?.stop()
-      redirectRules.tryRedirect()
+      maybeAuthRedirectAdapter()
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
     },
-  })
-
-  redirectRules = createRedirectRules({
-    sessionManager,
-    router,
-    redirect: config.redirect,
   })
 
   setupInterceptors({
