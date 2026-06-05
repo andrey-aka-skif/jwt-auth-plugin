@@ -62,7 +62,7 @@ export const createTokenService = ({
 
       processQueue(null, tokens)
 
-      return tokens
+      __timedDebug__('Токен обновлен')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
