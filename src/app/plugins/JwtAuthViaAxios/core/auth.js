@@ -30,7 +30,7 @@ export const createJwtAuthViaAxios = ({
   let sessionManager = null
   // Как сообщить об ошибке?
 
-  const maybeAuthRedirectAdapter = () =>
+  const maybeAuthRedirectViaAdapter = () =>
     maybeAuthRedirect({
       sessionManager,
       router,
@@ -47,39 +47,45 @@ export const createJwtAuthViaAxios = ({
   tokenService = createTokenService({
     tokenStorage,
     api,
-    onRefreshFailure: () => {
-      __timedDebug__('createTokenService. onRefreshFailure')
-
-      sessionManager.clear()
-      maybeAuthRedirectAdapter()
+    constants: {
+      accessTokenExpirationThresholdMs:
+        config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
     },
-    accessTokenExpirationThresholdMs:
-      config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
       lockKey: config.token.refresh.lockKey,
+    },
+    callbacks: {
+      onRefreshFailure: () => {
+        __timedDebug__('Рефреш токена не удался. Очищаем сессию')
+
+        sessionManager.clear()
+        maybeAuthRedirectViaAdapter()
+      },
     },
   })
 
   sessionManager = createSessionManager({
     api,
     tokenService,
-    onRestoreSession: () => {
-      __timedDebug__('createSessionManager. onRestoreSession')
-
-      tokenRefreshScheduler?.start()
-      maybeAuthRedirectAdapter()
-    },
-    onClearSession: () => {
-      __timedDebug__('createSessionManager. onClearSession')
-
-      tokenRefreshScheduler?.stop()
-      maybeAuthRedirectAdapter()
-    },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
+    },
+    callbacks: {
+      onRestoreSession: () => {
+        __timedDebug__('Сессия восстановлена')
+
+        tokenRefreshScheduler?.start()
+        maybeAuthRedirectViaAdapter()
+      },
+      onClearSession: () => {
+        __timedDebug__('Сессия очищена')
+
+        tokenRefreshScheduler?.stop()
+        maybeAuthRedirectViaAdapter()
+      },
     },
   })
 
@@ -94,7 +100,7 @@ export const createJwtAuthViaAxios = ({
   setupRoutingGuards({
     router,
     sessionManager,
-    redirect: config.redirect,
+    redirectPathes: config.redirect,
   })
 
   setupCrossTabSync({
@@ -108,7 +114,9 @@ export const createJwtAuthViaAxios = ({
   if (config.plugin.autoRefresh) {
     tokenRefreshScheduler = createTokenRefreshScheduler({
       tokenService,
-      intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
+      constants: {
+        intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
+      },
     })
   }
 

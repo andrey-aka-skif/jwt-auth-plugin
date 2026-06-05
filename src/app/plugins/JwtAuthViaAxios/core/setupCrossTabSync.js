@@ -6,11 +6,11 @@ export const setupCrossTabSync = ({
   keys: { accessTokenStorageKey },
 }) => {
   const handleTokenChange = async () => {
-    const accessToken = tokenService.getAccessToken()
-
-    if (accessToken) {
+    if (tokenService.isAccessTokenExist()) {
       await sessionManager.restoreSession()
     } else {
+      __timedDebug__('Токена больше нет!')
+
       await sessionManager.clear()
     }
   }

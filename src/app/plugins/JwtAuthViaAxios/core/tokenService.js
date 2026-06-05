@@ -4,9 +4,9 @@ import { __timedDebug__ } from './debug'
 export const createTokenService = ({
   tokenStorage,
   api,
-  onRefreshFailure,
-  accessTokenExpirationThresholdMs,
+  constants: { accessTokenExpirationThresholdMs },
   keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey },
+  callbacks: { onRefreshFailure },
 }) => {
   let isRefreshing = false
   let failedQueue = []
@@ -34,8 +34,6 @@ export const createTokenService = ({
   }
 
   const refreshTokens = async () => {
-    __timedDebug__('Рефреш токенов в сервисе токенов')
-
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
@@ -43,6 +41,8 @@ export const createTokenService = ({
     }
 
     isRefreshing = true
+
+    __timedDebug__('refresh токенов в сервисе токенов...')
 
     try {
       const refreshToken = tokenStorage.getRefreshToken()
@@ -64,7 +64,7 @@ export const createTokenService = ({
 
       return tokens
     } catch (error) {
-      __timedDebug__('Ожидаем поймать AuthenticationError:', error)
+      __timedDebug__('ОШИБКА при рефреше токена:', error)
 
       tokenStorage.clearTokens()
 
@@ -72,14 +72,7 @@ export const createTokenService = ({
 
       processQueue(refreshError, null)
 
-      __timedDebug__(
-        'ОШИБКА при рефреше токена. Зажигаем refreshError:',
-        refreshError
-      )
-
       onRefreshFailure?.()
-
-      __timedDebug__('try throw refreshError')
 
       throw refreshError
     } finally {
@@ -88,6 +81,13 @@ export const createTokenService = ({
   }
 
   const refreshTokensWithLock = async () => {
+    const locks = await navigator.locks.query()
+    const isLocked = locks.held.some(lock => lock.name === lockKey)
+
+    if (isLocked) {
+      __timedDebug__('БЛОКИРОВКА уже существует. Ждем завершения')
+    }
+
     return navigator.locks.request(lockKey, async () => refreshTokens())
   }
 

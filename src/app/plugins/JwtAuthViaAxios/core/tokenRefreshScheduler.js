@@ -1,12 +1,15 @@
 import { __timedDebug__ } from './debug'
 
-export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
+export const createTokenRefreshScheduler = ({
+  tokenService,
+  constants: { intervalMs },
+}) => {
   let refreshTimer = null
 
   const tick = async () => {
     try {
       if (tokenService.shouldRefreshToken()) {
-        __timedDebug__('tick планировщика рефреша')
+        __timedDebug__('refresh токена по таймеру...')
 
         await tokenService.refreshTokens()
       }
@@ -26,7 +29,6 @@ export const createTokenRefreshScheduler = ({ tokenService, intervalMs }) => {
 
   const stop = () => {
     if (refreshTimer) {
-      __timedDebug__('Остановлен планировщик рефреша токенов')
       clearInterval(refreshTimer)
       refreshTimer = null
     }
