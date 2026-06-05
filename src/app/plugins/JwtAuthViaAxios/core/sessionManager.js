@@ -17,7 +17,7 @@ export const createSessionManager = ({
   const isAuthenticated = computed(() => !!user.value)
 
   const login = async credentials => {
-    __timedDebug__('login....')
+    __timedDebug__('🔐 login....')
 
     const response = await api.login(credentials)
 
@@ -43,7 +43,7 @@ export const createSessionManager = ({
 
   const restoreSession = async () => {
     try {
-      __timedDebug__('restore session...')
+      __timedDebug__('⟳ restore session...')
 
       const me = await api.me()
       user.value = me.data
@@ -67,7 +67,7 @@ export const createSessionManager = ({
   }
 
   const clear = () => {
-    __timedDebug__('clear session...')
+    __timedDebug__('🗑 clear session...')
 
     tokenService.clearTokens()
     user.value = null

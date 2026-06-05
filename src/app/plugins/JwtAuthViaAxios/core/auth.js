@@ -58,7 +58,7 @@ export const createJwtAuthViaAxios = ({
     },
     callbacks: {
       onRefreshFailure: () => {
-        __timedDebug__('Рефреш токена не удался. Очищаем сессию')
+        __timedDebug__('💀 Рефреш токена не удался. Очищаем сессию')
 
         sessionManager.clear()
         maybeAuthRedirectViaAdapter()
@@ -75,13 +75,13 @@ export const createJwtAuthViaAxios = ({
     },
     callbacks: {
       onRestoreSession: () => {
-        __timedDebug__('Сессия восстановлена')
+        __timedDebug__('✓ Сессия восстановлена')
 
         tokenRefreshScheduler?.start()
         maybeAuthRedirectViaAdapter()
       },
       onClearSession: () => {
-        __timedDebug__('Сессия очищена')
+        __timedDebug__('○ Сессия очищена')
 
         tokenRefreshScheduler?.stop()
         maybeAuthRedirectViaAdapter()

@@ -42,7 +42,7 @@ export const createTokenService = ({
 
     isRefreshing = true
 
-    __timedDebug__('refresh токенов в сервисе токенов...')
+    __timedDebug__('↻ refresh токенов в сервисе токенов...')
 
     try {
       const refreshToken = tokenStorage.getRefreshToken()
@@ -62,7 +62,7 @@ export const createTokenService = ({
 
       processQueue(null, tokens)
 
-      __timedDebug__('Токен обновлен')
+      __timedDebug__('● Токен обновлен')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
@@ -85,7 +85,9 @@ export const createTokenService = ({
     const isLocked = locks.held.some(lock => lock.name === lockKey)
 
     if (isLocked) {
-      __timedDebug__('БЛОКИРОВКА уже существует. Ждем завершения')
+      __timedDebug__(
+        '__________БЛОКИРОВКА уже существует. Ждем завершения__________'
+      )
     }
 
     return navigator.locks.request(lockKey, async () => refreshTokens())

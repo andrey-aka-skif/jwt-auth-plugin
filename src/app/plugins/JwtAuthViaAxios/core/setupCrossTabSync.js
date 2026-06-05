@@ -9,7 +9,7 @@ export const setupCrossTabSync = ({
     if (tokenService.isAccessTokenExist()) {
       await sessionManager.restoreSession()
     } else {
-      __timedDebug__('Токена больше нет!')
+      __timedDebug__('∅ Токена больше нет!')
 
       await sessionManager.clear()
     }
@@ -17,7 +17,7 @@ export const setupCrossTabSync = ({
 
   const listener = async event => {
     if (event.key === accessTokenStorageKey) {
-      __timedDebug__('Синхронизация вкладок.........')
+      __timedDebug__('⇄ Синхронизация вкладок.........')
 
       await handleTokenChange()
     }
