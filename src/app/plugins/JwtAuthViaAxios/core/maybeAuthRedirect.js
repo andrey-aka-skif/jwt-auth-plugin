@@ -17,6 +17,4 @@ export const maybeAuthRedirect = ({
   if (!sessionManager.isAuthenticated.value && redirectOnNotAuthenticated) {
     router.push(redirectOnNotAuthenticated).catch(() => {})
   }
-
-  return { tryRedirect: maybeAuthRedirect }
 }

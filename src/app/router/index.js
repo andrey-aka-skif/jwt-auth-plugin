@@ -6,6 +6,9 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
+    meta: {
+      title: 'Home',
+    },
   },
   {
     path: '/login',
@@ -13,6 +16,7 @@ const routes = [
     component: () => import('@/views/LoginView.vue'),
     meta: {
       redirectOnAuthenticated: { name: 'home' },
+      title: 'Login',
     },
   },
   {
@@ -21,12 +25,16 @@ const routes = [
     component: () => import('@/views/ProfileView.vue'),
     meta: {
       auth: true,
+      title: 'Profile',
     },
   },
   {
     path: '/content',
     name: 'content',
     component: () => import('@/views/ContentView.vue'),
+    meta: {
+      title: 'Content',
+    },
   },
   {
     path: '/:pathMatch(.*)*',
@@ -45,6 +53,14 @@ const router = createRouter({
     return { top: 0 }
   },
   routes,
+})
+
+router.beforeEach((to, from, next) => {
+  if (to.meta.title) {
+    document.title = to.meta.title
+  }
+
+  next()
 })
 
 export default router
