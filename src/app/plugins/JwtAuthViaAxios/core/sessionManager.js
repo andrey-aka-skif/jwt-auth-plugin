@@ -26,7 +26,7 @@ export const createSessionManager = ({
       refreshToken: response.data[refreshTokenResponseKey],
     })
 
-    await restoreSession()
+    await tryRestoreSession()
   }
 
   const logout = async () => {
@@ -41,9 +41,18 @@ export const createSessionManager = ({
     }
   }
 
-  const restoreSession = async () => {
+  const tryRestoreSession = async () => {
     try {
       __timedDebug__('⟳ restore session...')
+
+      if (!tokenService.isAccessTokenExist()) {
+        __timedDebug__(
+          'Токен отсутствует в хранилище. Восстановить сессию невозможно'
+        )
+
+        clear()
+        return
+      }
 
       const me = await api.me()
       user.value = me.data
@@ -83,9 +92,9 @@ export const createSessionManager = ({
 
     initializationPromise = (async () => {
       try {
-        if (tokenService.isAccessTokenExist()) {
-          await restoreSession()
-        }
+        __timedDebug__('Стартовая инициализация...')
+
+        await tryRestoreSession()
       } finally {
         isReady.value = true
       }
@@ -100,7 +109,7 @@ export const createSessionManager = ({
     isReady,
     login,
     logout,
-    restoreSession,
+    tryRestoreSession,
     clear,
     initialize,
   }

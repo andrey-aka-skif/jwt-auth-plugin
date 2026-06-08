@@ -1,5 +1,4 @@
 import { __timedDebug__ } from './debug'
-import { RefreshTokenError } from '../errors/RefreshTokenError'
 
 export const setupInterceptors = ({
   axiosInstance,
@@ -20,7 +19,7 @@ export const setupInterceptors = ({
     originalRequest._retry = true
 
     try {
-      await tokenService.refreshTokens()
+      await tokenService.tryRefreshTokens()
 
       const accessToken = tokenService.getAccessToken()
 
@@ -28,14 +27,7 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
-      __timedDebug__('ИНТЕРСЕПТОР перехватил ошибку')
-
-      __timedDebug__(
-        'ОШИБКА при рефреше токена в ИНТЕРСЕПТОРЕ:',
-        refreshError,
-        'refreshError instanceof RefreshTokenError:',
-        refreshError instanceof RefreshTokenError
-      )
+      __timedDebug__('ИНТЕРСЕПТОР перехватил ошибку', refreshError)
 
       return Promise.reject(refreshError)
     }
