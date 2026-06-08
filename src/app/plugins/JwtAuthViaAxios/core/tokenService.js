@@ -33,7 +33,7 @@ export const createTokenService = ({
     }
   }
 
-  const refreshTokens = async () => {
+  const tryRefreshTokensUnderLock = async () => {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
@@ -48,7 +48,7 @@ export const createTokenService = ({
       const refreshToken = tokenStorage.getRefreshToken()
 
       if (!refreshToken) {
-        throw new RefreshTokenError('Рефреш токен не найден')
+        throw new Error('Рефреш токен не найден')
       }
 
       const { data } = await api.refresh(refreshToken)
@@ -62,25 +62,21 @@ export const createTokenService = ({
 
       processQueue(null, tokens)
 
-      __timedDebug__('● Токен обновлен')
+      __timedDebug__('● Токены обновлены')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
       tokenStorage.clearTokens()
-
-      const refreshError = new RefreshTokenError()
-
-      processQueue(refreshError, null)
-
+      processQueue(error, null)
       onRefreshFailure?.()
 
-      throw refreshError
+      throw error
     } finally {
       isRefreshing = false
     }
   }
 
-  const refreshTokensWithLock = async () => {
+  const tryRefreshTokens = async () => {
     const locks = await navigator.locks.query()
     const isLocked = locks.held.some(lock => lock.name === lockKey)
 
@@ -90,7 +86,14 @@ export const createTokenService = ({
       )
     }
 
-    return navigator.locks.request(lockKey, async () => refreshTokens())
+    return navigator.locks.request(lockKey, async () => {
+      if (shouldRefreshToken()) {
+        __timedDebug__('refresh уже не нужен')
+        return
+      }
+
+      tryRefreshTokensUnderLock()
+    })
   }
 
   const getAccessTokenExpiration = () => {
@@ -118,6 +121,10 @@ export const createTokenService = ({
   const shouldRefreshToken = (
     thresholdMs = accessTokenExpirationThresholdMs
   ) => {
+    if (!isAccessTokenExist()) {
+      return false
+    }
+
     return getAccessTokenRemainingLifetime() < thresholdMs
   }
 
@@ -127,7 +134,7 @@ export const createTokenService = ({
 
   return {
     ...tokenStorage,
-    refreshTokens: refreshTokensWithLock,
+    tryRefreshTokens,
     shouldRefreshToken,
     isAccessTokenExist,
   }

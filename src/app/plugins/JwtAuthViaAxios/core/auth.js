@@ -104,10 +104,11 @@ export const createJwtAuthViaAxios = ({
   })
 
   setupCrossTabSync({
-    tokenService,
-    sessionManager,
     keys: {
       accessTokenStorageKey: config.token.access.storageKey,
+    },
+    callbacks: {
+      onTokenChange: () => sessionManager.tryRestoreSession(),
     },
   })
 

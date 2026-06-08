@@ -8,13 +8,9 @@ export const createTokenRefreshScheduler = ({
 
   const tick = async () => {
     try {
-      if (tokenService.shouldRefreshToken()) {
-        __timedDebug__(
-          '⏱ Срабатывание таймера автоматического refresh токена...'
-        )
+      __timedDebug__('⏱')
 
-        await tokenService.refreshTokens()
-      }
+      await tokenService.tryRefreshTokens()
     } catch {
       __timedDebug__('⚠ Шедулер перехватил ошибку')
       // nothing
