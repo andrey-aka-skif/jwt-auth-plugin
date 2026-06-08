@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import { AuthenticationError } from '../errors/AuthenticationError'
 import { __timedDebug__ } from './debug'
 
 export const createSessionManager = ({
@@ -58,18 +57,9 @@ export const createSessionManager = ({
       user.value = me.data
       onRestoreSession?.()
     } catch (error) {
-      __timedDebug__(
-        'Ошибка в restoreSession:',
-        error,
-        'error instanceof AuthenticationError:',
-        error instanceof AuthenticationError
-      )
+      __timedDebug__('Ошибка в tryRestoreSession:', error)
 
-      if (error instanceof AuthenticationError) {
-        __timedDebug__('_______Поймали AuthenticationError:', error)
-
-        clear()
-      }
+      clear()
     } finally {
       isReady.value = true
     }
