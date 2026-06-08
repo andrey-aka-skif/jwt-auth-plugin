@@ -88,11 +88,8 @@ export const createTokenService = ({
 
     return navigator.locks.request(lockKey, async () => {
       if (shouldRefreshToken()) {
-        __timedDebug__('refresh уже не нужен')
-        return
+        tryRefreshTokensUnderLock()
       }
-
-      tryRefreshTokensUnderLock()
     })
   }
 
