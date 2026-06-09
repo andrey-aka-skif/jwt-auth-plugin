@@ -1,4 +1,3 @@
-import { RefreshTokenError } from '../errors/RefreshTokenError'
 import { __timedDebug__ } from './debug'
 
 export const createTokenService = ({
@@ -9,10 +8,10 @@ export const createTokenService = ({
   callbacks: { onRefreshFailure },
 }) => {
   let isRefreshing = false
-  let failedQueue = []
+  let pendingQueue = []
 
-  const processQueue = (error, token = null) => {
-    failedQueue.forEach(({ resolve, reject }) => {
+  const resolveQueue = (error, token = null) => {
+    pendingQueue.forEach(({ resolve, reject }) => {
       if (error) {
         reject(error)
       } else {
@@ -20,7 +19,7 @@ export const createTokenService = ({
       }
     })
 
-    failedQueue = []
+    pendingQueue = []
   }
 
   const decodeToken = token => {
@@ -36,7 +35,7 @@ export const createTokenService = ({
   const tryRefreshTokensUnderLock = async () => {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject })
+        pendingQueue.push({ resolve, reject })
       })
     }
 
@@ -60,14 +59,14 @@ export const createTokenService = ({
 
       tokenStorage.saveTokenPair(tokens)
 
-      processQueue(null, tokens)
+      resolveQueue(null, tokens)
 
       __timedDebug__('● Токены обновлены')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
       tokenStorage.clearTokens()
-      processQueue(error, null)
+      resolveQueue(error, null)
       onRefreshFailure?.()
 
       throw error
@@ -88,7 +87,7 @@ export const createTokenService = ({
 
     return navigator.locks.request(lockKey, async () => {
       if (shouldRefreshToken()) {
-        tryRefreshTokensUnderLock()
+        await tryRefreshTokensUnderLock()
       }
     })
   }
