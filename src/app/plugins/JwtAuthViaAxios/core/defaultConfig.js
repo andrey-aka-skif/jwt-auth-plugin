@@ -32,6 +32,7 @@ export const DEFAULT_CONFIG = {
       checkIntervalMinutes: 0.1,
       checkIntervalThresholdMinutes: 0.75,
       lockKey: 'jwt_refresh_lock',
+      lockTimeout: 5000,
     },
   },
 }
