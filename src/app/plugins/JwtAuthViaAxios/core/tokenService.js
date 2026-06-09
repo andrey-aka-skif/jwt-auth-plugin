@@ -12,21 +12,6 @@ export const createTokenService = ({
   },
   callbacks: { onRefreshFailure },
 }) => {
-  let isRefreshing = false
-  let pendingQueue = []
-
-  const resolveQueue = (error, token = null) => {
-    pendingQueue.forEach(({ resolve, reject }) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(token)
-      }
-    })
-
-    pendingQueue = []
-  }
-
   const decodeToken = token => {
     try {
       const base64Url = token.split('.')[1]
@@ -57,31 +42,16 @@ export const createTokenService = ({
   }
 
   const tryRefreshTokensUnderLock = async () => {
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        pendingQueue.push({ resolve, reject })
-      })
-    }
-
-    isRefreshing = true
-
-    __timedDebug__('↻ refresh токенов в сервисе токенов...')
-
     try {
-      const tokens = await refreshTokens()
-      resolveQueue(null, tokens)
+      await refreshTokens()
 
       __timedDebug__('● Токены обновлены')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
       tokenStorage.clearTokens()
-      resolveQueue(error, null)
       onRefreshFailure?.()
-
       throw error
-    } finally {
-      isRefreshing = false
     }
   }
 
