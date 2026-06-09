@@ -29,8 +29,8 @@ export const DEFAULT_CONFIG = {
       requestKey: 'refresh_token', // 'refresh_token' | 'X-Refresh-Token'
       requestMethod: 'body', // 'body' | 'header'
       storageKey: 'refresh_token',
-      checkIntervalMinutes: 0.1,
-      checkIntervalThresholdMinutes: 0.75,
+      checkIntervalMinutes: 1 / 60,
+      checkIntervalThresholdMinutes: 58 / 60,
       lockKey: 'jwt_refresh_lock',
       lockTimeout: 5000,
     },
