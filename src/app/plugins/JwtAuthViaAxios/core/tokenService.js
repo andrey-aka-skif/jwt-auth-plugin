@@ -32,6 +32,25 @@ export const createTokenService = ({
     }
   }
 
+  const refreshTokens = async () => {
+    const refreshToken = tokenStorage.getRefreshToken()
+
+    if (!refreshToken) {
+      throw new Error('Рефреш токен не найден')
+    }
+
+    const { data } = await api.refresh(refreshToken)
+
+    const tokens = {
+      accessToken: data[accessTokenResponseKey],
+      refreshToken: data[refreshTokenResponseKey],
+    }
+
+    tokenStorage.saveTokenPair(tokens)
+
+    return tokens
+  }
+
   const tryRefreshTokensUnderLock = async () => {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
@@ -44,21 +63,7 @@ export const createTokenService = ({
     __timedDebug__('↻ refresh токенов в сервисе токенов...')
 
     try {
-      const refreshToken = tokenStorage.getRefreshToken()
-
-      if (!refreshToken) {
-        throw new Error('Рефреш токен не найден')
-      }
-
-      const { data } = await api.refresh(refreshToken)
-
-      const tokens = {
-        accessToken: data[accessTokenResponseKey],
-        refreshToken: data[refreshTokenResponseKey],
-      }
-
-      tokenStorage.saveTokenPair(tokens)
-
+      const tokens = await refreshTokens()
       resolveQueue(null, tokens)
 
       __timedDebug__('● Токены обновлены')
