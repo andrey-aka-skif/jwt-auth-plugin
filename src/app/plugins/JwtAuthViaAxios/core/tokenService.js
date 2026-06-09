@@ -4,7 +4,12 @@ export const createTokenService = ({
   tokenStorage,
   api,
   constants: { accessTokenExpirationThresholdMs },
-  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey },
+  keys: {
+    accessTokenResponseKey,
+    refreshTokenResponseKey,
+    lockKey,
+    lockTimeout,
+  },
   callbacks: { onRefreshFailure },
 }) => {
   let isRefreshing = false
@@ -90,11 +95,15 @@ export const createTokenService = ({
       )
     }
 
-    return navigator.locks.request(lockKey, async () => {
-      if (shouldRefreshToken()) {
-        await tryRefreshTokensUnderLock()
+    return navigator.locks.request(
+      lockKey,
+      { signal: AbortSignal.timeout(lockTimeout) },
+      async () => {
+        if (shouldRefreshToken()) {
+          await tryRefreshTokensUnderLock()
+        }
       }
-    })
+    )
   }
 
   const getAccessTokenExpiration = () => {
