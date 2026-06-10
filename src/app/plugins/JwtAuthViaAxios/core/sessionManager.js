@@ -8,6 +8,7 @@ export const createSessionManager = ({
   callbacks: { onRestoreSession, onClearSession },
 }) => {
   let initializationPromise = null
+  let sessionVersion = 0
 
   const user = ref(null)
 
@@ -25,7 +26,7 @@ export const createSessionManager = ({
       refreshToken: response.data[refreshTokenResponseKey],
     })
 
-    await tryRestoreSession()
+    await tryRestoreSession('login')
   }
 
   const logout = async () => {
@@ -40,7 +41,16 @@ export const createSessionManager = ({
     }
   }
 
-  const tryRestoreSession = async () => {
+  let restoreId = 0
+
+  const tryRestoreSession = async origin => {
+    const currentId = ++restoreId
+    const version = sessionVersion
+
+    __timedDebug__(`Восстановление сессии вызвано в ${origin}`)
+
+    __timedDebug__('restore start _____', currentId, '_____')
+
     try {
       __timedDebug__('⟳ restore session...')
 
@@ -54,6 +64,13 @@ export const createSessionManager = ({
       }
 
       const me = await api.me()
+
+      if (version !== sessionVersion) {
+        return
+      }
+
+      __timedDebug__('restore finish _____', currentId, '_____')
+
       user.value = me.data
       onRestoreSession?.()
     } catch (error) {
@@ -61,12 +78,15 @@ export const createSessionManager = ({
 
       clear()
     } finally {
+      __timedDebug__('clear from restore _____', currentId, '_____')
+
       isReady.value = true
     }
   }
 
   const clear = () => {
     __timedDebug__('🗑 clear session...')
+    sessionVersion++
 
     tokenService.clearTokens()
     user.value = null
@@ -84,7 +104,7 @@ export const createSessionManager = ({
       try {
         __timedDebug__('Стартовая инициализация...')
 
-        await tryRestoreSession()
+        await tryRestoreSession('initialize')
       } finally {
         isReady.value = true
       }
