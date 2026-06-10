@@ -27,7 +27,7 @@ export const createTokenService = ({
   const refreshTokens = async refreshId => {
     const refreshToken = tokenStorage.getRefreshToken()
 
-    __timedDebug__(`REFRESH ${refreshId} USING RT`, refreshToken.slice(-8))
+    __timedDebug__(`REFRESH ${refreshId} USING RT`, refreshToken.slice(0, 8))
 
     if (!refreshToken) {
       throw new Error('Рефреш токен не найден')
@@ -65,7 +65,9 @@ export const createTokenService = ({
     }
   }
 
-  const tryRefreshTokens = async () => {
+  const tryRefreshTokens = async origin => {
+    __timedDebug__('TRY REFRESH FROM', origin)
+
     const locks = await navigator.locks.query()
     const isLocked = locks.held.some(lock => lock.name === lockKey)
 

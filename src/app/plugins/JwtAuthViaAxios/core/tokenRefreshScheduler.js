@@ -10,7 +10,7 @@ export const createTokenRefreshScheduler = ({
     try {
       __timedDebug__('⏱')
 
-      await tokenService.tryRefreshTokens()
+      await tokenService.tryRefreshTokens('scheduler')
     } catch {
       __timedDebug__('⚠ Шедулер перехватил ошибку')
       // nothing
