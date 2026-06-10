@@ -93,7 +93,9 @@ export const createTokenService = ({
 
         __timedDebug__(
           'LOCK SHOULD_REFRESH',
-          tokenStorage.getDebugTokensFingerprint()
+          tokenStorage.getDebugTokensFingerprint(),
+          'shouldRefresh:',
+          shouldRefresh
         )
 
         if (shouldRefreshToken()) {
