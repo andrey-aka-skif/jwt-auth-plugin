@@ -109,7 +109,8 @@ export const createJwtAuthViaAxios = ({
       accessTokenStorageKey: config.token.access.storageKey,
     },
     callbacks: {
-      onTokenChange: () => sessionManager.tryRestoreSession(),
+      onTokenChange: () =>
+        sessionManager.tryRestoreSession('auth.setupCrossTabSync'),
     },
   })
 

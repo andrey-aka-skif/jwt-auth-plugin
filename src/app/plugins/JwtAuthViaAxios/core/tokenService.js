@@ -22,8 +22,12 @@ export const createTokenService = ({
     }
   }
 
-  const refreshTokens = async () => {
+  let refreshCounter = 0
+
+  const refreshTokens = async refreshId => {
     const refreshToken = tokenStorage.getRefreshToken()
+
+    __timedDebug__(`REFRESH ${refreshId} USING RT`, refreshToken.slice(-8))
 
     if (!refreshToken) {
       throw new Error('Рефреш токен не найден')
@@ -42,11 +46,17 @@ export const createTokenService = ({
   }
 
   const tryRefreshTokensUnderLock = async () => {
-    try {
-      await refreshTokens()
+    const refreshId = ++refreshCounter
 
+    __timedDebug__(`REFRESH ${refreshId} START`)
+
+    try {
+      await refreshTokens(refreshId)
+
+      __timedDebug__(`REFRESH ${refreshId} SUCCESS`)
       __timedDebug__('● Токены обновлены')
     } catch (error) {
+      __timedDebug__(`REFRESH ${refreshId} FAILED`)
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
       tokenStorage.clearTokens()

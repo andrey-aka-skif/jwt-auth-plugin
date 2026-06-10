@@ -30,7 +30,7 @@ export const DEFAULT_CONFIG = {
       requestMethod: 'body', // 'body' | 'header'
       storageKey: 'refresh_token',
       checkIntervalMinutes: 1 / 60,
-      checkIntervalThresholdMinutes: 58 / 60,
+      checkIntervalThresholdMinutes: 59.5 / 60,
       lockKey: 'jwt_refresh_lock',
       lockTimeout: 5000,
     },
