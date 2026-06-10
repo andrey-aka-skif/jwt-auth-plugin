@@ -3,11 +3,15 @@ import { __timedDebug__ } from './debug'
 export const createTokenStorage = ({
   keys: { accessTokenStorageKey, refreshTokenStorageKey },
 }) => {
-  const saveTokenPair = ({ accessToken, refreshToken }) => {
-    __timedDebug__('SAVE RT', refreshToken.slice(0, 8))
+  let generation = 0
 
+  const saveTokenPair = ({ accessToken, refreshToken }) => {
     localStorage.setItem(accessTokenStorageKey, accessToken)
     localStorage.setItem(refreshTokenStorageKey, refreshToken)
+
+    localStorage.setItem('debug_token_generation', generation++)
+
+    __timedDebug__('SAVE TOKENS', getDebugTokensFingerprint())
   }
 
   const getAccessToken = () => {
@@ -23,10 +27,17 @@ export const createTokenStorage = ({
     localStorage.removeItem(refreshTokenStorageKey)
   }
 
+  const getDebugTokensFingerprint = () => ({
+    at: getAccessToken()?.slice(0, 8),
+    rt: getRefreshToken()?.slice(0, 8),
+    gen: localStorage.getItem('debug_token_generation'),
+  })
+
   return {
     saveTokenPair,
     getAccessToken,
     getRefreshToken,
     clearTokens,
+    getDebugTokensFingerprint,
   }
 }

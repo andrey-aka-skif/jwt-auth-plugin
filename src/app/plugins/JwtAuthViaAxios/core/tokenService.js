@@ -27,7 +27,10 @@ export const createTokenService = ({
   const refreshTokens = async refreshId => {
     const refreshToken = tokenStorage.getRefreshToken()
 
-    __timedDebug__(`REFRESH ${refreshId} USING RT`, refreshToken.slice(0, 8))
+    __timedDebug__(
+      `REFRESH ${refreshId} USING RT`,
+      tokenStorage.getDebugTokensFingerprint()
+    )
 
     if (!refreshToken) {
       throw new Error('Рефреш токен не найден')
@@ -81,6 +84,18 @@ export const createTokenService = ({
       lockKey,
       { signal: AbortSignal.timeout(lockTimeout) },
       async () => {
+        __timedDebug__(
+          'LOCK ACQUIRED',
+          tokenStorage.getDebugTokensFingerprint()
+        )
+
+        const shouldRefresh = shouldRefreshToken()
+
+        __timedDebug__(
+          'LOCK SHOULD_REFRESH',
+          tokenStorage.getDebugTokensFingerprint()
+        )
+
         if (shouldRefreshToken()) {
           await tryRefreshTokensUnderLock()
         }
@@ -113,6 +128,16 @@ export const createTokenService = ({
   const shouldRefreshToken = (
     thresholdMs = accessTokenExpirationThresholdMs
   ) => {
+    const token = tokenStorage.getAccessToken()
+    const remaining = getAccessTokenRemainingLifetime()
+
+    __timedDebug__(
+      'SHOULD_REFRESH',
+      tokenStorage.getDebugTokensFingerprint(),
+      remaining,
+      thresholdMs
+    )
+
     if (!isAccessTokenExist()) {
       return false
     }
