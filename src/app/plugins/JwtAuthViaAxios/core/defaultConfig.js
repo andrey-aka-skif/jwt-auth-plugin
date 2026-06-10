@@ -21,17 +21,17 @@ export const DEFAULT_CONFIG = {
       // TODO: storage: 'localStorage' | 'memory'
       responseKey: 'access_token',
       requestKey: 'Authorization',
-      storageKey: 'access_token',
+      storageKey: 'auth_access_token',
     },
     refresh: {
       // TODO: storage: 'localStorage' | 'httpOnlyCookie' | 'memory'
       responseKey: 'refresh_token',
       requestKey: 'refresh_token', // 'refresh_token' | 'X-Refresh-Token'
       requestMethod: 'body', // 'body' | 'header'
-      storageKey: 'refresh_token',
+      storageKey: 'auth_refresh_token',
       checkIntervalMinutes: 1 / 60,
       checkIntervalThresholdMinutes: 59.5 / 60,
-      lockKey: 'jwt_refresh_lock',
+      lockKey: 'auth_refresh_lock',
       lockTimeout: 5000,
     },
   },

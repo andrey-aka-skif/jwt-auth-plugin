@@ -1,7 +1,11 @@
+import { __timedDebug__ } from './debug'
+
 export const createTokenStorage = ({
   keys: { accessTokenStorageKey, refreshTokenStorageKey },
 }) => {
   const saveTokenPair = ({ accessToken, refreshToken }) => {
+    __timedDebug__('SAVE RT', refreshToken.slice(0, 8))
+
     localStorage.setItem(accessTokenStorageKey, accessToken)
     localStorage.setItem(refreshTokenStorageKey, refreshToken)
   }
