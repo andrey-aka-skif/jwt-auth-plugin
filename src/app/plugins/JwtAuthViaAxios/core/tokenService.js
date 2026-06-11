@@ -78,6 +78,8 @@ export const createTokenService = ({
       __timedDebug__(
         '__________БЛОКИРОВКА уже существует. Ждем завершения__________'
       )
+
+      return
     }
 
     return navigator.locks.request(

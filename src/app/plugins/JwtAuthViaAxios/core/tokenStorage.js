@@ -9,7 +9,7 @@ export const createTokenStorage = ({
     localStorage.setItem(accessTokenStorageKey, accessToken)
     localStorage.setItem(refreshTokenStorageKey, refreshToken)
 
-    localStorage.setItem('debug_token_generation', generation++)
+    localStorage.setItem('debug_token_generation', generation++) // тут косяк, но не суть
 
     __timedDebug__('SAVE TOKENS', getDebugTokensFingerprint())
   }
