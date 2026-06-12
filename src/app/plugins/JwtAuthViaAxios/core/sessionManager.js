@@ -43,6 +43,8 @@ export const createSessionManager = ({
 
   let restoreId = 0
 
+  // TODO: проверить, что пользователь не изменился, через чтение токена и декодирование,
+  // чтобы не делать лишний запрос на /me
   const tryRestoreSession = async origin => {
     const currentId = ++restoreId
     const version = sessionVersion

@@ -8,7 +8,7 @@ export const createTokenService = ({
     accessTokenResponseKey,
     refreshTokenResponseKey,
     lockKey,
-    lockTimeout,
+    lockTimeout, // TODO: вынести в константы
   },
   callbacks: { onRefreshFailure },
 }) => {
