@@ -1,9 +1,58 @@
-[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,styl}]
+# Не искать файлы .editorconfig в родительских каталогах
+root = true
+
+
+#  Параметры по умолчанию для всех файлов
+[*]
 charset = utf-8
-indent_size = 2
-indent_style = space
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
-
-end_of_line = lf
+indent_style = space
+indent_size = 4
 max_line_length = 100
+
+
+# .NET
+[*.{cs,vb}]
+indent_size = 4
+
+[*.{csproj,vbproj,fsproj,props,targets}]
+indent_size = 2
+
+[*.{xml,config,resx,settings,xaml}]
+indent_size = 2
+
+[*.{asax,ascx,master,aspx}]
+indent_size = 4
+
+[*.{sln,slnx}]
+indent_style = tab
+
+
+# JavaScript/TypeScript/Vue
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue}]
+indent_size = 2
+max_line_length = 100
+
+
+# CSS/SCSS/SASS/LESS
+[*.{css,scss,sass,less,styl}]
+indent_size = 2
+
+
+# JSON/YAML/Markdown
+[*.json]
+indent_size = 2
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+max_line_length = 0
+
+
+# .NET solution for Windows-specific
+[*.{bat,cmd,ps1}]
+end_of_line = crlf

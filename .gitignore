@@ -1,33 +1,103 @@
-# Logs
-logs
-*.log
+# IDE and Editors
+.vscode/
+.idea/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+!.vscode/extensions.json
+!.vscode/settings.json
+
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.tmp
+
+
+# Node.js / JavaScript / TypeScript / Vue
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-.DS_Store
-dist
-dist-ssr
-coverage
+.pnpm-debug.log*
+dist/
+dist-ssr/
 *.local
+*.tsbuildinfo
 
-/cypress/videos/
-/cypress/screenshots/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.npmrc
+# Environment variables
 .env*
 !.env.example
-*.ps1
+
+
+# .NET / C#
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Oo]ut/
+[Aa]rtifacts/
+
+*.swp
+*.*~
+project.lock.json
+*.gen.json
+*.pidb
+*.sln.ide/
+
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+[Tt]est[Rr]esult*
+[Bb]uild[Ll]og.*
+*.ncrunchsolution
+*.ncrunchproject
+*.DotSettings.user
+
+*.coverage
+*.coveragexml
+
+
+# Package managers
+packages/
+*.nupkg
+*.snupkg
+!packages/repositories.config
+
+
+# Logs and databases
+logs/
+*.log
+*.sqlite
+*.sqlite3
+
+
+# Publishing
+*.nupkg
+*.snupkg
+*.vsix
+
+
+# Others
+.npmrc

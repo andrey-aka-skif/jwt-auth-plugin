@@ -1,2 +1,12 @@
-node_modules
-dist
+# Общая конфигурация для игнорирования файлов и папок при использовании Prettier
+node_modules/
+dist/
+coverage/
+*.log
+
+# .NET
+playgrounds/api/
+
+# Локальные конфигурационные файлы
+.env
+.env.*
