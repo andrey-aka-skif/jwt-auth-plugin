@@ -3,10 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+    ".": "./dist/index.js"
   },
   "files": [
     "dist"
