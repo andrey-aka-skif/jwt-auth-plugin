@@ -4,7 +4,7 @@ import axiosInstance from './shared/api/transport/instance'
 
 import App from './App.vue'
 import router from './app/router'
-import auth from './app/plugins/JwtAuthViaAxios'
+import auth from '@andrey-aka-skif/jwt-auth-plugin'
 import { AUTH_CONFIG } from './shared/config'
 
 import './assets/main.css'

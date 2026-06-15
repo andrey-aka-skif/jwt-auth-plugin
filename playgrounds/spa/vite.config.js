@@ -9,6 +9,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@andrey-aka-skif/jwt-auth-plugin': fileURLToPath(
+        new URL('../../packages/jwt-auth-plugin/src', import.meta.url)
+      ),
     },
   },
 })

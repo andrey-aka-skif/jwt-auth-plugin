@@ -1,8 +1,8 @@
 <script setup>
 import { ref } from 'vue'
-import { useAuthService } from '@/shared/services/authService'
+import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
 
-const { login, isAuthenticated: isAuth, user } = useAuthService()
+const { login, isAuthenticated: isAuth, user } = useAuth()
 
 const email_placeholder = 'admin@test.com'
 const password_placeholder = 'password123'

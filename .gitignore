@@ -31,6 +31,7 @@ dist/
 dist-ssr/
 *.local
 *.tsbuildinfo
+!**.
 
 
 # Environment variables
@@ -77,13 +78,6 @@ project.lock.json
 
 *.coverage
 *.coveragexml
-
-
-# Package managers
-packages/
-*.nupkg
-*.snupkg
-!packages/repositories.config
 
 
 # Logs and databases

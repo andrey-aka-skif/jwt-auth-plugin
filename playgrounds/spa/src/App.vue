@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import { useAuth } from './app/plugins/JwtAuthViaAxios'
+import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
 
@@ -9,8 +9,6 @@ const { user, logout, isReady } = useAuth()
 
 const showPlaceholder = computed(() => {
   return route.meta.auth && !isReady
-  // return !isReady
-  // return route.meta.auth
 })
 </script>
 
