@@ -3,13 +3,8 @@ import { __timedDebug__ } from './debug'
 export const createTokenService = ({
   tokenStorage,
   api,
-  constants: { accessTokenExpirationThresholdMs },
-  keys: {
-    accessTokenResponseKey,
-    refreshTokenResponseKey,
-    lockKey,
-    lockTimeout, // TODO: вынести в константы
-  },
+  constants: { accessTokenExpirationThresholdMs, lockTimeout },
+  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey },
   callbacks: { onRefreshFailure },
 }) => {
   const decodeToken = token => {

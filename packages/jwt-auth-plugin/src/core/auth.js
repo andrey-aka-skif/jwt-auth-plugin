@@ -50,12 +50,12 @@ export const createJwtAuthViaAxios = ({
     constants: {
       accessTokenExpirationThresholdMs:
         config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
+      lockTimeout: config.token.refresh.lockTimeout,
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
       lockKey: config.token.refresh.lockKey,
-      lockTimeout: config.token.refresh.lockTimeout,
     },
     callbacks: {
       onRefreshFailure: () => {
