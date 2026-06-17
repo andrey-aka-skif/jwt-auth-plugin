@@ -8,7 +8,7 @@ const route = useRoute()
 const { user, logout, isReady } = useAuth()
 
 const showPlaceholder = computed(() => {
-  return route.meta.auth && !isReady
+  return route.meta.auth && !isReady.value
 })
 </script>
 

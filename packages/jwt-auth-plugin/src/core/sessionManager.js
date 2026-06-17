@@ -75,13 +75,14 @@ export const createSessionManager = ({
 
       __timedDebug__('Изменился пользователь. Новый sub:', sub)
 
+      const me = await api.me()
+
       if (version !== sessionVersion) {
         return
       }
 
       __timedDebug__('restore finish _____', currentId, '_____')
 
-      const me = await api.me()
       user.value = me.data
       onRestoreSession?.()
     } catch (error) {

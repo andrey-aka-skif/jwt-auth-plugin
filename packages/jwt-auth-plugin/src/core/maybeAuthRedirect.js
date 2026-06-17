@@ -11,10 +11,18 @@ export const maybeAuthRedirect = ({
     redirectPathes?.onNotAuthenticated
 
   if (sessionManager.isAuthenticated.value && redirectOnAuthenticated) {
-    router.push(redirectOnAuthenticated).catch(() => {})
+    router.push(redirectOnAuthenticated).catch(() => {
+      console.error(
+        `Проверьте, что роут '${redirectOnAuthenticated}' существует`
+      )
+    })
   }
 
   if (!sessionManager.isAuthenticated.value && redirectOnNotAuthenticated) {
-    router.push(redirectOnNotAuthenticated).catch(() => {})
+    router.push(redirectOnNotAuthenticated).catch(() => {
+      console.error(
+        `Проверьте, что роут '${redirectOnNotAuthenticated}' существует`
+      )
+    })
   }
 }

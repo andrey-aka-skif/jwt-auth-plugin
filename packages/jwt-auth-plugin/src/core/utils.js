@@ -1,3 +1,5 @@
+export const REQUIRED = Symbol('required')
+
 const isObject = value => {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
@@ -19,4 +21,20 @@ export const mergeConfigs = (target, source) => {
   }
 
   return output
+}
+
+export const validateConfig = (obj, path = '') => {
+  for (const [key, value] of Object.entries(obj)) {
+    const currentPath = path ? `${path}.${key}` : key
+
+    if (value === REQUIRED) {
+      throw new Error(
+        `Требуется указать обязательное поле ${currentPath} в конфигурации`
+      )
+    }
+
+    if (isObject(value)) {
+      validateConfig(value, currentPath)
+    }
+  }
 }

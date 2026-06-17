@@ -110,33 +110,27 @@ export const createTokenService = ({
     )
   }
 
-  const getAccessTokenSub = () => {
+  const getDecodedAccessToken = () => {
     const token = tokenStorage.getAccessToken()
 
     if (!token) {
       return null
     }
 
-    const decoded = decodeToken(token)
+    return decodeToken(token)
+  }
 
+  const getAccessTokenSub = () => {
+    const decoded = getDecodedAccessToken()
     return decoded?.[subKey] ?? null
   }
 
-  const isUserChanged = oldSub => oldSub !== getAccessTokenSub()
-
   const getAccessTokenExpiration = () => {
-    const token = tokenStorage.getAccessToken()
-
-    if (!token) {
-      return null
-    }
-
-    const decoded = decodeToken(token)
-
-    // console.log(decoded)
-
+    const decoded = getDecodedAccessToken()
     return decoded?.exp ? decoded.exp * 1000 : null
   }
+
+  const isUserChanged = oldSub => oldSub !== getAccessTokenSub()
 
   const getAccessTokenRemainingLifetime = () => {
     const expiration = getAccessTokenExpiration()

@@ -1,6 +1,8 @@
+import { REQUIRED } from './utils'
+
 export const DEFAULT_CONFIG = {
   api: {
-    baseURL: 'http://localhost:5000/api/',
+    baseURL: REQUIRED,
   },
   plugin: {
     autoStart: true,
@@ -18,21 +20,18 @@ export const DEFAULT_CONFIG = {
   },
   token: {
     access: {
-      // TODO: storage: 'localStorage' | 'memory'
       responseKey: 'access_token',
       requestKey: 'Authorization',
       storageKey: 'auth_access_token',
-      subKey:
-        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
+      subKey: REQUIRED,
     },
     refresh: {
-      // TODO: storage: 'localStorage' | 'httpOnlyCookie' | 'memory'
       responseKey: 'refresh_token',
       requestKey: 'refresh_token', // 'refresh_token' | 'X-Refresh-Token'
       requestMethod: 'body', // 'body' | 'header'
       storageKey: 'auth_refresh_token',
-      checkIntervalMinutes: 1 / 60,
-      checkIntervalThresholdMinutes: 59.5 / 60,
+      checkIntervalMinutes: 1,
+      checkIntervalThresholdMinutes: 5,
       lockKey: 'auth_refresh_lock',
       lockTimeout: 5000,
     },

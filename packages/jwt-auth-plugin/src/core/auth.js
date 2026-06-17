@@ -1,7 +1,7 @@
 import { readonly } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApiAdapter } from './defaultApiAdapter'
-import { mergeConfigs } from './utils'
+import { mergeConfigs, validateConfig } from './utils'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 import { createTokenService } from './tokenService'
@@ -19,6 +19,7 @@ export const createJwtAuthViaAxios = ({
   config = DEFAULT_CONFIG,
 }) => {
   config = mergeConfigs(DEFAULT_CONFIG, config)
+  validateConfig(config)
 
   if (!api) {
     api = createDefaultApiAdapter({ axiosInstance, config })
