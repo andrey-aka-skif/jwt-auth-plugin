@@ -56,6 +56,7 @@ export const createJwtAuthViaAxios = ({
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,
       lockKey: config.token.refresh.lockKey,
+      subKey: config.token.access.subKey,
     },
     callbacks: {
       onRefreshFailure: () => {

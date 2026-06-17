@@ -10,6 +10,8 @@ export const createSessionManager = ({
   let initializationPromise = null
   let sessionVersion = 0
 
+  let sub = null
+
   const user = ref(null)
 
   const isReady = ref(false)
@@ -65,7 +67,13 @@ export const createSessionManager = ({
         return
       }
 
-      const me = await api.me()
+      if (!tokenService.isUserChanged(sub)) {
+        return
+      }
+
+      sub = tokenService.getAccessTokenSub()
+
+      __timedDebug__('Изменился пользователь. Новый sub:', sub)
 
       if (version !== sessionVersion) {
         return
@@ -73,6 +81,7 @@ export const createSessionManager = ({
 
       __timedDebug__('restore finish _____', currentId, '_____')
 
+      const me = await api.me()
       user.value = me.data
       onRestoreSession?.()
     } catch (error) {

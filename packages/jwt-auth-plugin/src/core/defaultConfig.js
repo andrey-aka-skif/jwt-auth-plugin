@@ -22,6 +22,8 @@ export const DEFAULT_CONFIG = {
       responseKey: 'access_token',
       requestKey: 'Authorization',
       storageKey: 'auth_access_token',
+      subKey:
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier',
     },
     refresh: {
       // TODO: storage: 'localStorage' | 'httpOnlyCookie' | 'memory'

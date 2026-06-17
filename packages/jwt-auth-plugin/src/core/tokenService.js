@@ -4,14 +4,22 @@ export const createTokenService = ({
   tokenStorage,
   api,
   constants: { accessTokenExpirationThresholdMs, lockTimeout },
-  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey },
+  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
   callbacks: { onRefreshFailure },
 }) => {
   const decodeToken = token => {
     try {
       const base64Url = token.split('.')[1]
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      return JSON.parse(atob(base64))
+      const binaryString = atob(base64)
+      const bytes = new Uint8Array(binaryString.length)
+
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i)
+      }
+
+      const jsonPayload = new TextDecoder().decode(bytes)
+      return JSON.parse(jsonPayload)
     } catch {
       return null
     }
@@ -102,6 +110,20 @@ export const createTokenService = ({
     )
   }
 
+  const getAccessTokenSub = () => {
+    const token = tokenStorage.getAccessToken()
+
+    if (!token) {
+      return null
+    }
+
+    const decoded = decodeToken(token)
+
+    return decoded?.[subKey] ?? null
+  }
+
+  const isUserChanged = oldSub => oldSub !== getAccessTokenSub()
+
   const getAccessTokenExpiration = () => {
     const token = tokenStorage.getAccessToken()
 
@@ -110,6 +132,8 @@ export const createTokenService = ({
     }
 
     const decoded = decodeToken(token)
+
+    // console.log(decoded)
 
     return decoded?.exp ? decoded.exp * 1000 : null
   }
@@ -153,5 +177,7 @@ export const createTokenService = ({
     tryRefreshTokens,
     shouldRefreshToken,
     isAccessTokenExist,
+    getAccessTokenSub,
+    isUserChanged,
   }
 }
