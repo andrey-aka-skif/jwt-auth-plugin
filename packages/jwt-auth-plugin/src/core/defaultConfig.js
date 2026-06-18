@@ -32,8 +32,10 @@ export const DEFAULT_CONFIG = {
       storageKey: 'auth_refresh_token',
       checkIntervalMinutes: 1,
       checkIntervalThresholdMinutes: 5,
+      checkJitterPercent: 0.1,
       lockKey: 'auth_refresh_lock',
       lockTimeout: 5000,
+      raceWaitIntervalMs: 150,
     },
   },
 }

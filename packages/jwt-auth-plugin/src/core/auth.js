@@ -52,6 +52,7 @@ export const createJwtAuthViaAxios = ({
       accessTokenExpirationThresholdMs:
         config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
       lockTimeout: config.token.refresh.lockTimeout,
+      raceWaitIntervalMs: config.token.refresh.raceWaitIntervalMs,
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
@@ -64,6 +65,12 @@ export const createJwtAuthViaAxios = ({
         __timedDebug__('💀 Рефреш токена не удался. Очищаем сессию')
 
         sessionManager.clear()
+        maybeAuthRedirectViaAdapter()
+      },
+      onChangeUser: () => {
+        __timedDebug__('Сменился пользователь')
+
+        sessionManager.tryRestoreSession()
         maybeAuthRedirectViaAdapter()
       },
     },
@@ -121,6 +128,7 @@ export const createJwtAuthViaAxios = ({
       tokenService,
       constants: {
         intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
+        checkJitterPercent: config.token.refresh.checkJitterPercent,
       },
     })
   }

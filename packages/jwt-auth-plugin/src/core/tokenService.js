@@ -1,39 +1,25 @@
 import { __timedDebug__ } from './debug'
+import {
+  _getAccessTokenSub,
+  _isAccessTokenExist,
+  _isUserChanged as _isUserChanged,
+  _shouldRefreshToken,
+  _sleep,
+} from './tokenUtils'
 
 export const createTokenService = ({
   tokenStorage,
   api,
-  constants: { accessTokenExpirationThresholdMs, lockTimeout },
+  constants: {
+    accessTokenExpirationThresholdMs,
+    lockTimeout,
+    raceWaitIntervalMs,
+  },
   keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
-  callbacks: { onRefreshFailure },
+  callbacks: { onRefreshFailure, onChangeUser },
 }) => {
-  const decodeToken = token => {
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const binaryString = atob(base64)
-      const bytes = new Uint8Array(binaryString.length)
-
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i)
-      }
-
-      const jsonPayload = new TextDecoder().decode(bytes)
-      return JSON.parse(jsonPayload)
-    } catch {
-      return null
-    }
-  }
-
-  let refreshCounter = 0
-
-  const refreshTokens = async refreshId => {
+  const refreshTokens = async () => {
     const refreshToken = tokenStorage.getRefreshToken()
-
-    __timedDebug__(
-      `REFRESH ${refreshId} USING RT`,
-      tokenStorage.getDebugTokensFingerprint()
-    )
 
     if (!refreshToken) {
       throw new Error('Рефреш токен не найден')
@@ -47,23 +33,42 @@ export const createTokenService = ({
     }
 
     tokenStorage.saveTokenPair(tokens)
-
-    return tokens
   }
 
-  const tryRefreshTokensUnderLock = async () => {
-    const refreshId = ++refreshCounter
-
-    __timedDebug__(`REFRESH ${refreshId} START`)
+  const tryRefreshTokensUnderLock = async accessToken => {
+    const oldSub = _getAccessTokenSub(accessToken, subKey)
 
     try {
-      await refreshTokens(refreshId)
-
-      __timedDebug__(`REFRESH ${refreshId} SUCCESS`)
+      await refreshTokens()
       __timedDebug__('● Токены обновлены')
     } catch (error) {
-      __timedDebug__(`REFRESH ${refreshId} FAILED`)
       __timedDebug__('ОШИБКА при рефреше токена:', error)
+      __timedDebug__(`Ждем ${raceWaitIntervalMs} мс.`)
+
+      await _sleep(raceWaitIntervalMs)
+
+      __timedDebug__('isAccessTokenExist():', isAccessTokenExist())
+      __timedDebug__('isUserChanged():', isUserChanged(getAccessTokenSub()))
+      __timedDebug__('shouldRefreshToken():', _shouldRefreshToken())
+      __timedDebug__('fingerprint:', tokenStorage.getDebugTokensFingerprint())
+
+      const newAccessToken = tokenStorage.getAccessToken()
+
+      const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
+
+      if (isAccessTokenExist && _isUserChanged(oldSub, newAccessToken)) {
+        onChangeUser?.()
+        return
+      }
+
+      if (
+        isAccessTokenExist &&
+        !_shouldRefreshToken(accessToken, accessTokenExpirationThresholdMs)
+      ) {
+        __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
+
+        return
+      }
 
       tokenStorage.clearTokens()
       onRefreshFailure?.()
@@ -71,105 +76,37 @@ export const createTokenService = ({
     }
   }
 
-  const tryRefreshTokens = async origin => {
-    __timedDebug__('TRY REFRESH FROM', origin)
-
-    const locks = await navigator.locks.query()
-    const isLocked = locks.held.some(lock => lock.name === lockKey)
-
-    if (isLocked) {
-      __timedDebug__(
-        '__________БЛОКИРОВКА уже существует. Ждем завершения__________'
-      )
-
-      return
-    }
-
+  const tryRefreshTokens = async () => {
     return navigator.locks.request(
       lockKey,
       { signal: AbortSignal.timeout(lockTimeout) },
       async () => {
-        __timedDebug__(
-          'LOCK ACQUIRED',
-          tokenStorage.getDebugTokensFingerprint()
-        )
+        const accessToken = tokenStorage.getAccessToken()
 
-        const shouldRefresh = shouldRefreshToken()
-
-        __timedDebug__(
-          'LOCK SHOULD_REFRESH',
-          tokenStorage.getDebugTokensFingerprint(),
-          'shouldRefresh:',
-          shouldRefresh
-        )
-
-        if (shouldRefreshToken()) {
-          await tryRefreshTokensUnderLock()
+        if (
+          _shouldRefreshToken(accessToken, accessTokenExpirationThresholdMs)
+        ) {
+          await tryRefreshTokensUnderLock(accessToken)
         }
       }
     )
   }
 
-  const getDecodedAccessToken = () => {
-    const token = tokenStorage.getAccessToken()
-
-    if (!token) {
-      return null
-    }
-
-    return decodeToken(token)
+  const isAccessTokenExist = () => {
+    return _isAccessTokenExist(tokenStorage.getAccessToken())
   }
 
   const getAccessTokenSub = () => {
-    const decoded = getDecodedAccessToken()
-    return decoded?.[subKey] ?? null
+    return _getAccessTokenSub(tokenStorage.getAccessToken(), subKey)
   }
 
-  const getAccessTokenExpiration = () => {
-    const decoded = getDecodedAccessToken()
-    return decoded?.exp ? decoded.exp * 1000 : null
-  }
-
-  const isUserChanged = oldSub => oldSub !== getAccessTokenSub()
-
-  const getAccessTokenRemainingLifetime = () => {
-    const expiration = getAccessTokenExpiration()
-
-    if (!expiration) {
-      return 0
-    }
-
-    return expiration - Date.now()
-  }
-
-  const shouldRefreshToken = (
-    thresholdMs = accessTokenExpirationThresholdMs
-  ) => {
-    const token = tokenStorage.getAccessToken()
-    const remaining = getAccessTokenRemainingLifetime()
-
-    __timedDebug__(
-      'SHOULD_REFRESH',
-      tokenStorage.getDebugTokensFingerprint(),
-      remaining,
-      thresholdMs
-    )
-
-    if (!isAccessTokenExist()) {
-      return false
-    }
-
-    return getAccessTokenRemainingLifetime() < thresholdMs
-  }
-
-  const isAccessTokenExist = () => {
-    return !!tokenStorage.getAccessToken()
+  const isUserChanged = oldSub => {
+    return _isUserChanged(oldSub, tokenStorage.getAccessToken())
   }
 
   return {
     ...tokenStorage,
     tryRefreshTokens,
-    shouldRefreshToken,
     isAccessTokenExist,
     getAccessTokenSub,
     isUserChanged,

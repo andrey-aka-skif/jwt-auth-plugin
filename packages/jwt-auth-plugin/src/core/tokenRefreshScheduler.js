@@ -2,9 +2,14 @@ import { __timedDebug__ } from './debug'
 
 export const createTokenRefreshScheduler = ({
   tokenService,
-  constants: { intervalMs },
+  constants: { intervalMs, checkJitterPercent },
 }) => {
   let refreshTimer = null
+
+  const getRandomDelay = (intervalMs, jitterPercent) => {
+    const jitter = 1 + (Math.random() * 2 - 1) * jitterPercent
+    return Math.floor(intervalMs * jitter)
+  }
 
   const tick = async () => {
     try {
@@ -22,7 +27,9 @@ export const createTokenRefreshScheduler = ({
 
     __timedDebug__('⏵ планировщика рефреша токенов')
 
-    refreshTimer = setInterval(tick, intervalMs)
+    // const delay = getRandomDelay(intervalMs, checkJitterPercent)
+    const delay = intervalMs
+    refreshTimer = setInterval(tick, delay)
   }
 
   const stop = () => {
