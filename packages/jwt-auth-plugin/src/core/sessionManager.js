@@ -32,6 +32,8 @@ export const createSessionManager = ({
   }
 
   const logout = async () => {
+    __timedDebug__('🔐 logout....')
+
     const refreshToken = tokenService.getRefreshToken()
 
     try {
@@ -45,43 +47,36 @@ export const createSessionManager = ({
 
   let restoreId = 0
 
-  // TODO: проверить, что пользователь не изменился, через чтение токена и декодирование,
-  // чтобы не делать лишний запрос на /me
   const tryRestoreSession = async origin => {
-    const currentId = ++restoreId
     const version = sessionVersion
 
-    __timedDebug__(`Восстановление сессии вызвано в ${origin}`)
-
-    __timedDebug__('restore start _____', currentId, '_____')
-
     try {
-      __timedDebug__('⟳ restore session...')
+      __timedDebug__(`⟳ restore session. Вызов из: "${origin}"`)
 
       if (!tokenService.isAccessTokenExist()) {
-        __timedDebug__(
-          'Токен отсутствует в хранилище. Восстановить сессию невозможно'
-        )
+        __timedDebug__('Нет токена. Восстановить сессию невозможно')
 
         clear()
         return
       }
 
       if (!tokenService.isUserChanged(sub)) {
+        __timedDebug__('Пользователь не изменился')
+
         return
       }
 
       sub = tokenService.getAccessTokenSub()
 
-      __timedDebug__('Изменился пользователь. Новый sub:', sub)
+      __timedDebug__(`Новый sub: "${sub}". Запрос "/me"`)
 
       const me = await api.me()
 
       if (version !== sessionVersion) {
+        __timedDebug__('Гонка восстановлений. Пропускаем восстановление')
+
         return
       }
-
-      __timedDebug__('restore finish _____', currentId, '_____')
 
       user.value = me.data
       onRestoreSession?.()
@@ -90,14 +85,11 @@ export const createSessionManager = ({
 
       clear()
     } finally {
-      __timedDebug__('clear from restore _____', currentId, '_____')
-
       isReady.value = true
     }
   }
 
   const clear = () => {
-    __timedDebug__('🗑 clear session...')
     sessionVersion++
 
     tokenService.clearTokens()
@@ -114,8 +106,6 @@ export const createSessionManager = ({
 
     initializationPromise = (async () => {
       try {
-        __timedDebug__('Стартовая инициализация...')
-
         await tryRestoreSession('initialize')
       } finally {
         isReady.value = true

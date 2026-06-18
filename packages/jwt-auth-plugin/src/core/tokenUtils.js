@@ -50,11 +50,21 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
   }
 
   const remaining = _getAccessTokenRemainingLifetime(accessToken)
+
+  __timedDebug__(
+    'remaining',
+    remaining,
+    'thresholdMs',
+    thresholdMs,
+    'remaining < thresholdMs',
+    remaining < thresholdMs
+  )
+
   return remaining < thresholdMs
 }
 
-export const _isUserChanged = (oldSub, accessToken) =>
-  oldSub !== _getAccessTokenSub(accessToken)
+export const _isUserChanged = (oldSub, accessToken, subKey) =>
+  oldSub !== _getAccessTokenSub(accessToken, subKey)
 
 export const _sleep = async ms =>
   new Promise(resolve => setTimeout(resolve, ms))

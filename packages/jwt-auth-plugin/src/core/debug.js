@@ -43,3 +43,12 @@ export function __timedDebug__(...args) {
 
   console.log(`[${time}] [${context}]`, ...args)
 }
+
+export function __tokensFingerprint__(tokensStorage) {
+  const fingerprint = {
+    at: `${tokensStorage.getAccessToken()?.slice(0, 8)}...`,
+    rt: `${tokensStorage.getRefreshToken()?.slice(0, 8)}...`,
+  }
+
+  __timedDebug__(fingerprint)
+}

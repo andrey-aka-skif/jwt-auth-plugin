@@ -1,8 +1,9 @@
-import { __timedDebug__ } from './debug'
+import { AuthenticationError } from '../errors/AuthenticationError'
+import { __tokensFingerprint__, __timedDebug__ } from './debug'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,
-  _isUserChanged as _isUserChanged,
+  _isUserChanged,
   _shouldRefreshToken,
   _sleep,
 } from './tokenUtils'
@@ -18,6 +19,44 @@ export const createTokenService = ({
   keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
   callbacks: { onRefreshFailure, onChangeUser },
 }) => {
+  const tryReadTokensAgain = async oldSub => {
+    __timedDebug__(`Ждем ${raceWaitIntervalMs} мс.`)
+
+    await _sleep(raceWaitIntervalMs)
+    const newAccessToken = tokenStorage.getAccessToken()
+
+    // debug---
+    __timedDebug__('isAccessTokenExist():', _isAccessTokenExist(newAccessToken))
+    __timedDebug__(
+      'isUserChanged():',
+      _isUserChanged(oldSub, newAccessToken, subKey)
+    )
+    __timedDebug__(
+      'shouldRefreshToken():',
+      _shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
+    )
+    __tokensFingerprint__(tokenStorage)
+    // ---debug
+
+    const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
+
+    if (isAccessTokenExist && _isUserChanged(oldSub, newAccessToken, subKey)) {
+      onChangeUser?.()
+      return true
+    }
+
+    if (
+      isAccessTokenExist &&
+      !_shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
+    ) {
+      __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
+
+      return true
+    }
+
+    return false
+  }
+
   const refreshTokens = async () => {
     const refreshToken = tokenStorage.getRefreshToken()
 
@@ -33,6 +72,7 @@ export const createTokenService = ({
     }
 
     tokenStorage.saveTokenPair(tokens)
+    __tokensFingerprint__(tokenStorage)
   }
 
   const tryRefreshTokensUnderLock = async accessToken => {
@@ -40,35 +80,19 @@ export const createTokenService = ({
 
     try {
       await refreshTokens()
+
       __timedDebug__('● Токены обновлены')
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
-      __timedDebug__(`Ждем ${raceWaitIntervalMs} мс.`)
-
-      await _sleep(raceWaitIntervalMs)
-
-      __timedDebug__('isAccessTokenExist():', isAccessTokenExist())
-      __timedDebug__('isUserChanged():', isUserChanged(getAccessTokenSub()))
-      __timedDebug__('shouldRefreshToken():', _shouldRefreshToken())
-      __timedDebug__('fingerprint:', tokenStorage.getDebugTokensFingerprint())
-
-      const newAccessToken = tokenStorage.getAccessToken()
-
-      const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
-
-      if (isAccessTokenExist && _isUserChanged(oldSub, newAccessToken)) {
-        onChangeUser?.()
-        return
-      }
 
       if (
-        isAccessTokenExist &&
-        !_shouldRefreshToken(accessToken, accessTokenExpirationThresholdMs)
+        error instanceof AuthenticationError &&
+        (await tryReadTokensAgain(oldSub))
       ) {
-        __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
-
         return
       }
+
+      __timedDebug__('Перечитать токен не удалось')
 
       tokenStorage.clearTokens()
       onRefreshFailure?.()
@@ -101,7 +125,7 @@ export const createTokenService = ({
   }
 
   const isUserChanged = oldSub => {
-    return _isUserChanged(oldSub, tokenStorage.getAccessToken())
+    return _isUserChanged(oldSub, tokenStorage.getAccessToken(), subKey)
   }
 
   return {

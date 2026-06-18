@@ -1,8 +1,8 @@
 import { __timedDebug__ } from './debug'
 
 export const createTokenRefreshScheduler = ({
-  tokenService,
   constants: { intervalMs, checkJitterPercent },
+  callbacks: { onSchedulerTick },
 }) => {
   let refreshTimer = null
 
@@ -13,11 +13,9 @@ export const createTokenRefreshScheduler = ({
 
   const tick = async () => {
     try {
-      __timedDebug__('⏱')
-
-      await tokenService.tryRefreshTokens('scheduler')
-    } catch {
-      __timedDebug__('⚠ Шедулер перехватил ошибку')
+      await onSchedulerTick?.()
+    } catch (error) {
+      __timedDebug__('⚠ Шедулер перехватил ошибку', error)
       // nothing
     }
   }
@@ -25,7 +23,7 @@ export const createTokenRefreshScheduler = ({
   const start = () => {
     stop()
 
-    __timedDebug__('⏵ планировщика рефреша токенов')
+    __timedDebug__('⏵ Scheduler...')
 
     // const delay = getRandomDelay(intervalMs, checkJitterPercent)
     const delay = intervalMs

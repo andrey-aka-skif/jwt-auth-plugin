@@ -6,7 +6,7 @@ export const setupCrossTabSync = ({
 }) => {
   const listener = async event => {
     if (event.key === accessTokenStorageKey) {
-      __timedDebug__('⇄ Синхронизация вкладок.........')
+      __timedDebug__('⇄ localStorage storage event')
 
       onTokenChange?.()
     }

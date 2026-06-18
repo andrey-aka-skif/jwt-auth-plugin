@@ -70,7 +70,7 @@ export const createJwtAuthViaAxios = ({
       onChangeUser: () => {
         __timedDebug__('Сменился пользователь')
 
-        sessionManager.tryRestoreSession()
+        sessionManager.tryRestoreSession('tokenService.onChangeUser')
         maybeAuthRedirectViaAdapter()
       },
     },
@@ -125,10 +125,16 @@ export const createJwtAuthViaAxios = ({
 
   if (config.plugin.autoRefresh) {
     tokenRefreshScheduler = createTokenRefreshScheduler({
-      tokenService,
       constants: {
         intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
         checkJitterPercent: config.token.refresh.checkJitterPercent,
+      },
+      callbacks: {
+        onSchedulerTick: async () => {
+          __timedDebug__('⏱')
+
+          await tokenService.tryRefreshTokens('scheduler')
+        },
       },
     })
   }
