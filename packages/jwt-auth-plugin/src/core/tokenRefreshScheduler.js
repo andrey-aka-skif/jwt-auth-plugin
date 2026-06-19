@@ -5,6 +5,7 @@ export const createTokenRefreshScheduler = ({
   callbacks: { onSchedulerTick },
 }) => {
   let refreshTimer = null
+  let stopped = true
 
   const getRandomDelay = (intervalMs, jitterPercent) => {
     const jitter = 1 + (Math.random() * 2 - 1) * jitterPercent
@@ -12,24 +13,33 @@ export const createTokenRefreshScheduler = ({
   }
 
   const tick = async () => {
-    try {
-      await onSchedulerTick?.()
-    } catch (error) {
-      __timedDebug__('⚠ Шедулер перехватил ошибку', error)
-      // nothing
-    }
+    const delay = getRandomDelay(intervalMs, checkJitterPercent)
+
+    refreshTimer = setTimeout(async () => {
+      try {
+        await onSchedulerTick?.()
+      } catch (error) {
+        __timedDebug__('⚠ Шедулер перехватил ошибку', error)
+        // nothing
+      } finally {
+        if (!stopped) {
+          tick()
+        }
+      }
+    }, delay)
   }
 
   const start = () => {
-    stop()
-
     __timedDebug__('⏵ Scheduler...')
 
-    const delay = getRandomDelay(intervalMs, checkJitterPercent)
-    refreshTimer = setInterval(tick, delay)
+    stop()
+    stopped = false
+    tick()
   }
 
   const stop = () => {
+    stopped = true
+
     if (refreshTimer) {
       clearInterval(refreshTimer)
       refreshTimer = null

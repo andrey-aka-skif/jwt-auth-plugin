@@ -15,43 +15,52 @@ export const createTokenService = ({
     accessTokenExpirationThresholdMs,
     lockTimeout,
     raceWaitIntervalMs,
+    raceWaitMaxAttempts,
   },
   keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
   callbacks: { onRefreshFailure, onChangeUser },
 }) => {
   const tryReadTokensAgain = async oldSub => {
-    __timedDebug__(`Ждем ${raceWaitIntervalMs} мс.`)
+    for (let attempt = 1; attempt <= raceWaitMaxAttempts; attempt++) {
+      __timedDebug__(`Ждем ${raceWaitIntervalMs} мс`)
 
-    await _sleep(raceWaitIntervalMs)
-    const newAccessToken = tokenStorage.getAccessToken()
+      await _sleep(raceWaitIntervalMs)
 
-    // debug---
-    __timedDebug__('isAccessTokenExist():', _isAccessTokenExist(newAccessToken))
-    __timedDebug__(
-      'isUserChanged():',
-      _isUserChanged(oldSub, newAccessToken, subKey)
-    )
-    __timedDebug__(
-      'shouldRefreshToken():',
-      _shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
-    )
-    __tokensFingerprint__(tokenStorage)
-    // ---debug
+      const newAccessToken = tokenStorage.getAccessToken()
+      const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
 
-    const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
+      // debug---
+      __timedDebug__(
+        `Перечитываем токен, попытка ${attempt}/${raceWaitMaxAttempts}`
+      )
+      __tokensFingerprint__(tokenStorage)
+      __timedDebug__('isAccessTokenExist():', isAccessTokenExist)
+      __timedDebug__(
+        'isUserChanged():',
+        _isUserChanged(oldSub, newAccessToken, subKey)
+      )
+      __timedDebug__(
+        'shouldRefreshToken():',
+        _shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
+      )
+      // ---debug
 
-    if (isAccessTokenExist && _isUserChanged(oldSub, newAccessToken, subKey)) {
-      onChangeUser?.()
-      return true
-    }
+      if (
+        isAccessTokenExist &&
+        _isUserChanged(oldSub, newAccessToken, subKey)
+      ) {
+        onChangeUser?.()
+        return true
+      }
 
-    if (
-      isAccessTokenExist &&
-      !_shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
-    ) {
-      __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
+      if (
+        isAccessTokenExist &&
+        !_shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
+      ) {
+        __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
 
-      return true
+        return true
+      }
     }
 
     return false
@@ -95,7 +104,7 @@ export const createTokenService = ({
       __timedDebug__('Перечитать токен не удалось')
 
       tokenStorage.clearTokens()
-      onRefreshFailure?.()
+      onRefreshFailure?.(error)
       throw error
     }
   }

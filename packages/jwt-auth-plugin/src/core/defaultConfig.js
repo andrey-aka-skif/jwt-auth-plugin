@@ -35,7 +35,8 @@ export const DEFAULT_CONFIG = {
       checkJitterPercent: 0.1,
       lockKey: 'auth_refresh_lock',
       lockTimeout: 5000,
-      raceWaitIntervalMs: 150,
+      raceWaitIntervalMs: 100,
+      raceWaitMaxAttempts: 5,
     },
   },
 }

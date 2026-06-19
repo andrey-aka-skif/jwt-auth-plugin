@@ -1,4 +1,4 @@
-import { readonly } from 'vue'
+import { readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApiAdapter } from './defaultApiAdapter'
 import { mergeConfigs, validateConfig } from './utils'
@@ -29,7 +29,9 @@ export const createJwtAuthViaAxios = ({
   let tokenRefreshScheduler = null
   let tokenService = null
   let sessionManager = null
+
   // Как сообщить об ошибке?
+  const lastError = ref(null)
 
   const maybeAuthRedirectViaAdapter = () =>
     maybeAuthRedirect({
@@ -53,6 +55,7 @@ export const createJwtAuthViaAxios = ({
         config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
       lockTimeout: config.token.refresh.lockTimeout,
       raceWaitIntervalMs: config.token.refresh.raceWaitIntervalMs,
+      raceWaitMaxAttempts: config.token.refresh.raceWaitMaxAttempts,
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
@@ -61,9 +64,10 @@ export const createJwtAuthViaAxios = ({
       subKey: config.token.access.subKey,
     },
     callbacks: {
-      onRefreshFailure: () => {
+      onRefreshFailure: error => {
         __timedDebug__('💀 Рефреш токена не удался. Очищаем сессию')
 
+        lastError.value = error
         sessionManager.clear()
         maybeAuthRedirectViaAdapter()
       },
@@ -142,9 +146,11 @@ export const createJwtAuthViaAxios = ({
   const auth = {
     login: sessionManager.login,
     logout: sessionManager.logout,
+    refresh: () => tokenService.tryRefreshTokens('manual'),
     user: readonly(sessionManager.user),
     isReady: readonly(sessionManager.isReady),
     isAuthenticated: readonly(sessionManager.isAuthenticated),
+    lastError: readonly(lastError),
   }
 
   if (config.plugin.autoStart) {
