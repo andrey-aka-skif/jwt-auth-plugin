@@ -25,7 +25,7 @@ export function __timedDebug__(...args) {
       callerFrame.match(/at\s+(.+):(\d+):\d+/)
 
     if (match) {
-      let filePath = match[1]
+      const filePath = match[1]
       const fileName = filePath.split('/').pop().split('\\').pop().split('?')[0]
       const line = match[2]
       context = `${fileName}:${line}`

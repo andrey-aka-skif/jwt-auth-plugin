@@ -25,8 +25,7 @@ export const createTokenRefreshScheduler = ({
 
     __timedDebug__('⏵ Scheduler...')
 
-    // const delay = getRandomDelay(intervalMs, checkJitterPercent)
-    const delay = intervalMs
+    const delay = getRandomDelay(intervalMs, checkJitterPercent)
     refreshTimer = setInterval(tick, delay)
   }
 

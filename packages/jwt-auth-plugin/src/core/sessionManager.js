@@ -45,8 +45,6 @@ export const createSessionManager = ({
     }
   }
 
-  let restoreId = 0
-
   const tryRestoreSession = async origin => {
     const version = sessionVersion
 

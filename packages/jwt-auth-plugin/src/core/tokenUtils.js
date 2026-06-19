@@ -51,6 +51,7 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
 
   const remaining = _getAccessTokenRemainingLifetime(accessToken)
 
+  // debug---
   __timedDebug__(
     'remaining',
     remaining,
@@ -59,6 +60,7 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
     'remaining < thresholdMs',
     remaining < thresholdMs
   )
+  // ---debug
 
   return remaining < thresholdMs
 }

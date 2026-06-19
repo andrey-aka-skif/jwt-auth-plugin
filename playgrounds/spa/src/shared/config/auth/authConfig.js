@@ -9,7 +9,7 @@ export const AUTH_CONFIG = {
     },
     refresh: {
       checkIntervalMinutes: 1 / 60,
-      checkIntervalThresholdMinutes: 59.3 / 60,
+      checkIntervalThresholdMinutes: 59.0 / 60,
       checkJitterPercent: 0.1,
       raceWaitIntervalMs: 5,
     },

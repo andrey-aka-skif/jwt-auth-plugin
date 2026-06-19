@@ -1,5 +1,5 @@
-import { AuthenticationError } from '../errors/AuthenticationError'
 import { __tokensFingerprint__, __timedDebug__ } from './debug'
+import { AuthenticationError } from '../errors/AuthenticationError'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,
