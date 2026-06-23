@@ -108,6 +108,9 @@ public static class AuthEndpoints
         {
             if (!string.IsNullOrWhiteSpace(req.Refresh_token))
                 refreshTokens.TryRemove(req.Refresh_token, out _);
+
+            ConsoleLogger.LogLogout(req.Refresh_token ?? "null");
+
             return Results.Ok();
         }).AllowAnonymous();
 
