@@ -15,6 +15,13 @@ export const DEFAULT_CONFIG = {
     register: '/auth/register',
     me: '/auth/me',
   },
+  session: {
+    // Сохранять сессию при сетевой ошибке рефреша (opt-in). По умолчанию
+    // false — прежнее поведение: рвём сессию при любом сбое рефреша.
+    keepSessionOnNetworkError: false,
+    // Статусы ответа, при которых сессия считается невалидной → разлогин.
+    logoutStatuses: [401],
+  },
   redirect: {
     backToPreviousOnAuthenticated: {
       enabled: true,

@@ -65,6 +65,7 @@ export const createJwtAuthViaAxios = ({
       lockTimeout: config.token.refresh.lockTimeout,
       raceWaitIntervalMs: config.token.refresh.raceWaitIntervalMs,
       raceWaitMaxAttempts: config.token.refresh.raceWaitMaxAttempts,
+      keepSessionOnNetworkError: config.session.keepSessionOnNetworkError,
     },
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,

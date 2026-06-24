@@ -1,5 +1,6 @@
 import { __tokensFingerprint__, __timedDebug__ } from '../shared/debug'
 import { AuthenticationError } from '../errors/AuthenticationError'
+import { NetworkError } from '../errors/NetworkError'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,
@@ -17,6 +18,7 @@ export const createTokenService = ({
     lockTimeout,
     raceWaitIntervalMs,
     raceWaitMaxAttempts,
+    keepSessionOnNetworkError,
   },
   keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
   callbacks: { onRefreshFailure, onChangeUser },
@@ -100,6 +102,14 @@ export const createTokenService = ({
         (await tryReadTokensAgain(oldSub))
       ) {
         return
+      }
+
+      // Сетевой сбой: до сервера не достучались. Если включено сохранение сессии —
+      // не трогаем токены, чтобы scheduler повторил рефреш позже, когда сеть вернётся.
+      if (keepSessionOnNetworkError && error instanceof NetworkError) {
+        __timedDebug__('🌐 Сетевая ошибка — сессия сохранена, повторим рефреш позже')
+
+        throw error
       }
 
       __timedDebug__('Перечитать токен не удалось')

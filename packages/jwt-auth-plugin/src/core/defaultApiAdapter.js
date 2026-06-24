@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { AuthenticationError } from '../errors/AuthenticationError'
+import { NetworkError } from '../errors/NetworkError'
 import { formatMessage } from '../shared/utils'
 
 export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
@@ -33,13 +34,22 @@ export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
     )
   }
 
+  const logoutStatuses = config.session?.logoutStatuses ?? [401]
+
   const applyErrorDecorator = async fn => {
     try {
       return await fn()
     } catch (error) {
-      if (error.response?.status === 401) {
+      // Ответа нет — до сервера не достучались. Сессия не обязательно невалидна.
+      if (axios.isAxiosError(error) && !error.response) {
+        throw new NetworkError(undefined, { cause: error })
+      }
+
+      // Сервер явно сообщил, что аутентификация невалидна.
+      if (logoutStatuses.includes(error.response?.status)) {
         throw new AuthenticationError()
       }
+
       throw error
     }
   }
