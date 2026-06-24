@@ -36,5 +36,10 @@ export const createTokenStorage = ({
     getAccessToken,
     getRefreshToken,
     clearTokens,
+    // Разрешённые (с учётом namespace) ключи localStorage — чтобы внешние
+    // подписчики (например, межвкладочная синхронизация) сравнивали с тем же
+    // ключом, под которым реально хранится токен.
+    accessTokenStorageKey: at,
+    refreshTokenStorageKey: rt,
   }
 }

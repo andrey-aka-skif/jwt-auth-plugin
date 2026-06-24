@@ -16,6 +16,10 @@ export const DEFAULT_CONFIG = {
     me: '/auth/me',
   },
   redirect: {
+    backToPreviousOnAuthenticated: {
+      enabled: true,
+      queryKey: 'redirect',
+    },
     onNotAuthenticated: { name: 'login' },
   },
   token: {

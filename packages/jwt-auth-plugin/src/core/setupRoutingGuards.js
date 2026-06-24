@@ -1,8 +1,6 @@
-export const setupRoutingGuards = ({
-  router,
-  sessionManager,
-  redirectPathes,
-}) => {
+import { appendBackToPreviousQuery, resolveSavedPath } from '../shared/utils'
+
+export const setupRoutingGuards = ({ router, sessionManager, redirects }) => {
   router.beforeEach(async (to, from, next) => {
     if (!sessionManager.isReady.value) {
       await sessionManager.initialize()
@@ -30,13 +28,24 @@ export const setupRoutingGuards = ({
       false
     )
 
+    const backToPrevious = redirects.backToPreviousOnAuthenticated
+
+    // Неаутентифицированный пользователь на защищённой странице:
+    // редиректим на логин, при включённой опции сохраняем исходный путь в query.
     if (requireAuth && !sessionManager.isAuthenticated.value) {
-      next(redirectOnNotAuthenticated || redirectPathes.onNotAuthenticated)
+      const target = redirectOnNotAuthenticated || redirects.onNotAuthenticated
+
+      next(appendBackToPreviousQuery(target, backToPrevious, to.fullPath))
       return
     }
 
+    // Уже аутентифицированный пользователь на странице для гостей (например,
+    // вручную открыл /login?redirect=/profile): при включённой опции и наличии
+    // безопасного сохранённого пути возвращаем туда, иначе — стандартная цель.
     if (redirectOnAuthenticated && sessionManager.isAuthenticated.value) {
-      next(redirectOnAuthenticated)
+      const savedPath = resolveSavedPath(backToPrevious, to.query)
+
+      next(savedPath || redirectOnAuthenticated)
       return
     }
 

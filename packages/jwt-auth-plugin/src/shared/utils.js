@@ -51,3 +51,37 @@ export const resolveConfig = (baseConfig, userConfig) => {
 export const formatMessage = message => {
   return `[${STRINGS.name}]: ${message}`
 }
+
+// Пропускаем только внутренние пути: строка, начинающаяся с одного '/'
+// и не с '//'. Это отсекает абсолютные внешние URL (http://…, //evil.com),
+// поэтому путь из query безопасно использовать как цель редиректа.
+export const isSafeInternalPath = path => {
+  return typeof path === 'string' && path.startsWith('/') && !path.startsWith('//')
+}
+
+// Разбор сохранённого исходного пути из query. Возвращает безопасный
+// внутренний путь либо null, если фича выключена / путь отсутствует / небезопасен.
+export const resolveSavedPath = (backToPrevious, query) => {
+  if (!backToPrevious?.enabled) {
+    return null
+  }
+
+  const saved = query?.[backToPrevious.queryKey]
+
+  return isSafeInternalPath(saved) ? saved : null
+}
+
+// Дополняет цель редиректа на логин query-параметром с исходным путём.
+// Если опция выключена или путь небезопасен — возвращает цель без изменений.
+export const appendBackToPreviousQuery = (target, backToPrevious, fullPath) => {
+  if (!backToPrevious?.enabled || !isSafeInternalPath(fullPath)) {
+    return target
+  }
+
+  const location = typeof target === 'string' ? { path: target } : { ...target }
+
+  return {
+    ...location,
+    query: { ...location.query, [backToPrevious.queryKey]: fullPath },
+  }
+}

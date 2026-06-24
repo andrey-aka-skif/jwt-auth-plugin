@@ -123,12 +123,12 @@ export const createJwtAuthViaAxios = ({
   setupRoutingGuards({
     router,
     sessionManager,
-    redirectPathes: config.redirect,
+    redirects: config.redirect,
   })
 
   setupCrossTabSync({
     keys: {
-      accessTokenStorageKey: config.token.access.storageKey,
+      accessTokenStorageKey: tokenStorage.accessTokenStorageKey,
     },
     callbacks: {
       onTokenChange: () =>
