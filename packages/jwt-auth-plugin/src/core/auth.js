@@ -9,8 +9,9 @@ import { createSessionManager } from './sessionManager'
 import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
-import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
+import { createRefreshScheduler } from './refreshScheduler'
 import { __timedDebug__ } from '../shared/debug'
+import { STRINGS } from '../shared/strings'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -33,7 +34,7 @@ export const createJwtAuthViaAxios = ({
   }
 
   let tokenStorage = null
-  let tokenRefreshScheduler = null
+  let scheduler = null
   let tokenService = null
   let sessionManager = null
 
@@ -51,6 +52,7 @@ export const createJwtAuthViaAxios = ({
     keys: {
       accessTokenStorageKey: config.token.access.storageKey,
       refreshTokenStorageKey: config.token.refresh.storageKey,
+      namespace: STRINGS.name,
     },
   })
 
@@ -98,13 +100,13 @@ export const createJwtAuthViaAxios = ({
       onRestoreSession: () => {
         __timedDebug__('✓ Сессия восстановлена')
 
-        tokenRefreshScheduler?.start()
+        scheduler?.start()
         maybeAuthRedirectViaAdapter()
       },
       onClearSession: () => {
         __timedDebug__('○ Сессия очищена')
 
-        tokenRefreshScheduler?.stop()
+        scheduler?.stop()
         maybeAuthRedirectViaAdapter()
       },
     },
@@ -135,13 +137,13 @@ export const createJwtAuthViaAxios = ({
   })
 
   if (config.plugin.autoRefresh) {
-    tokenRefreshScheduler = createTokenRefreshScheduler({
+    scheduler = createRefreshScheduler({
       constants: {
         intervalMs: config.token.refresh.checkIntervalMinutes * 60 * 1000,
         checkJitterPercent: config.token.refresh.checkJitterPercent,
       },
       callbacks: {
-        onSchedulerTick: async () => {
+        onNext: async () => {
           __timedDebug__('⏱')
 
           await tokenService.tryRefreshTokens('scheduler')

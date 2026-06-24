@@ -22,7 +22,7 @@ export const DEFAULT_CONFIG = {
     access: {
       responseKey: 'access_token',
       requestKey: 'Authorization',
-      storageKey: 'auth_access_token',
+      storageKey: 'access-token',
       subKey: REQUIRED,
     },
     refresh: {
@@ -33,7 +33,7 @@ export const DEFAULT_CONFIG = {
       checkIntervalMinutes: 1,
       checkIntervalThresholdMinutes: 5,
       checkJitterPercent: 0.1,
-      lockKey: 'auth_refresh_lock',
+      lockKey: 'refresh-lock',
       lockTimeout: 5000,
       raceWaitIntervalMs: 100,
       raceWaitMaxAttempts: 5,

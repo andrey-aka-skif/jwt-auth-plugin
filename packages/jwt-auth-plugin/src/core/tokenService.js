@@ -7,6 +7,7 @@ import {
   _shouldRefreshToken,
   _sleep,
 } from './tokenUtils'
+import { formatMessage } from '../shared/utils'
 
 export const createTokenService = ({
   tokenStorage,
@@ -70,7 +71,7 @@ export const createTokenService = ({
     const refreshToken = tokenStorage.getRefreshToken()
 
     if (!refreshToken) {
-      throw new Error('Рефреш токен не найден')
+      throw new Error(formatMessage('Рефреш токен не найден'))
     }
 
     const { data } = await api.refresh(refreshToken)

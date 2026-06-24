@@ -1,9 +1,10 @@
 import axios from 'axios'
 import { AuthenticationError } from '../errors/AuthenticationError'
+import { formatMessage } from '../shared/utils'
 
 export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
   if (!axiosInstance) {
-    throw new Error('Не передан экземпляр axios')
+    throw new Error(formatMessage('Не передан экземпляр axios'))
   }
 
   const axiosRefreshInstance = axios.create({ baseURL: config.api.baseURL })
@@ -26,7 +27,9 @@ export const createDefaultApiAdapter = ({ axiosInstance, config }) => {
     }
 
     throw new Error(
-      'Неверная конфигурация: неизвестный метод передачи рефреш токена'
+      formatMessage(
+        'Неверная конфигурация: неизвестный метод передачи рефреш токена'
+      )
     )
   }
 

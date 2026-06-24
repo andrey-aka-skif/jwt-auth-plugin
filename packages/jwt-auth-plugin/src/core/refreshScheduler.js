@@ -1,8 +1,8 @@
 import { __timedDebug__ } from '../shared/debug'
 
-export const createTokenRefreshScheduler = ({
+export const createRefreshScheduler = ({
   constants: { intervalMs, checkJitterPercent },
-  callbacks: { onSchedulerTick },
+  callbacks: { onNext },
 }) => {
   let refreshTimer = null
   let stopped = true
@@ -17,7 +17,7 @@ export const createTokenRefreshScheduler = ({
 
     refreshTimer = setTimeout(async () => {
       try {
-        await onSchedulerTick?.()
+        await onNext?.()
       } catch (error) {
         __timedDebug__('⚠ Шедулер перехватил ошибку', error)
         // nothing
