@@ -1,5 +1,5 @@
 import { createJwtAuthViaAxios } from '../core/auth'
-import { AUTH_KEY } from './symbols'
+import { AUTH_KEY } from '../shared/symbols'
 
 export default {
   install: (app, { router, axiosInstance, api, config }) => {

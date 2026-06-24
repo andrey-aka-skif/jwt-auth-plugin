@@ -1,4 +1,4 @@
-import { __timedDebug__ } from './debug'
+import { __timedDebug__ } from '../shared/debug'
 
 export const createTokenRefreshScheduler = ({
   constants: { intervalMs, checkJitterPercent },

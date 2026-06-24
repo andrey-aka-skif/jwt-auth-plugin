@@ -1,4 +1,4 @@
-import { REQUIRED } from './utils'
+import { REQUIRED } from '../shared/symbols'
 
 export const DEFAULT_CONFIG = {
   api: {

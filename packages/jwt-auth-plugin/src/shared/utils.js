@@ -1,10 +1,11 @@
-export const REQUIRED = Symbol('required')
+import { STRINGS } from './strings'
+import { REQUIRED } from './symbols'
 
 const isObject = value => {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
-export const mergeConfigs = (target, source) => {
+const mergeConfigs = (target, source) => {
   const output = { ...target }
 
   for (const [key, sourceValue] of Object.entries(source)) {
@@ -23,13 +24,15 @@ export const mergeConfigs = (target, source) => {
   return output
 }
 
-export const validateConfig = (obj, path = '') => {
+const validateConfig = (obj, path = '') => {
   for (const [key, value] of Object.entries(obj)) {
     const currentPath = path ? `${path}.${key}` : key
 
     if (value === REQUIRED) {
       throw new Error(
-        `Требуется указать обязательное поле ${currentPath} в конфигурации`
+        formatMessage(
+          `Не указано обязательное поле ${currentPath} в конфигурации`
+        )
       )
     }
 
@@ -37,4 +40,14 @@ export const validateConfig = (obj, path = '') => {
       validateConfig(value, currentPath)
     }
   }
+}
+
+export const resolveConfig = (baseConfig, userConfig) => {
+  const config = mergeConfigs(baseConfig, userConfig)
+  validateConfig(config)
+  return config
+}
+
+export const formatMessage = message => {
+  return `[${STRINGS.name}]: ${message}`
 }

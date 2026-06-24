@@ -1,4 +1,4 @@
-import { __tokensFingerprint__, __timedDebug__ } from './debug'
+import { __tokensFingerprint__, __timedDebug__ } from '../shared/debug'
 import { AuthenticationError } from '../errors/AuthenticationError'
 import {
   _getAccessTokenSub,

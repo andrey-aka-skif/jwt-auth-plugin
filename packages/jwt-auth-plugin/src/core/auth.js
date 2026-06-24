@@ -1,7 +1,7 @@
 import { readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createDefaultApiAdapter } from './defaultApiAdapter'
-import { mergeConfigs, validateConfig } from './utils'
+import { formatMessage, resolveConfig } from '../shared/utils'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 import { createTokenService } from './tokenService'
@@ -10,7 +10,7 @@ import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createTokenRefreshScheduler } from './tokenRefreshScheduler'
-import { __timedDebug__ } from './debug'
+import { __timedDebug__ } from '../shared/debug'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -18,8 +18,15 @@ export const createJwtAuthViaAxios = ({
   api = undefined,
   config = DEFAULT_CONFIG,
 }) => {
-  config = mergeConfigs(DEFAULT_CONFIG, config)
-  validateConfig(config)
+  if (!router) {
+    throw new Error(formatMessage('Требуется экземпляр router'))
+  }
+
+  if (!axiosInstance) {
+    throw new Error(formatMessage('Требуется экземпляр axios'))
+  }
+
+  config = resolveConfig(DEFAULT_CONFIG, config)
 
   if (!api) {
     api = createDefaultApiAdapter({ axiosInstance, config })
