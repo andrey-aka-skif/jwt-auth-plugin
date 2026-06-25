@@ -1,6 +1,6 @@
 import { readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
-import { createDefaultApiAdapter } from './defaultApiAdapter'
+import { createAxiosAdapter } from '../adapters/axiosAdapter'
 import { formatMessage, resolveConfig } from '../shared/utils'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
@@ -30,7 +30,7 @@ export const createJwtAuthViaAxios = ({
   config = resolveConfig(DEFAULT_CONFIG, config)
 
   if (!api) {
-    api = createDefaultApiAdapter({ axiosInstance, config })
+    api = createAxiosAdapter({ axiosInstance, config })
   }
 
   let tokenStorage = null
@@ -116,6 +116,7 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
+    getErrorKind: api.getErrorKind,
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -161,6 +162,9 @@ export const createJwtAuthViaAxios = ({
     isReady: readonly(sessionManager.isReady),
     isAuthenticated: readonly(sessionManager.isAuthenticated),
     lastError: readonly(lastError),
+    // Публичная классификация ошибок — чтобы UI единообразно интерпретировал
+    // ошибку login (login по-прежнему бросает сырьё): 'auth' | 'network' | 'unknown'.
+    getErrorKind: api.getErrorKind,
   }
 
   if (config.plugin.autoStart) {

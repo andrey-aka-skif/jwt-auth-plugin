@@ -1,6 +1,4 @@
 import { __tokensFingerprint__, __timedDebug__ } from '../shared/debug'
-import { AuthenticationError } from '../errors/AuthenticationError'
-import { NetworkError } from '../errors/NetworkError'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,
@@ -97,16 +95,15 @@ export const createTokenService = ({
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
-      if (
-        error instanceof AuthenticationError &&
-        (await tryReadTokensAgain(oldSub))
-      ) {
+      const kind = api.getErrorKind(error)
+
+      if (kind === 'auth' && (await tryReadTokensAgain(oldSub))) {
         return
       }
 
       // Сетевой сбой: до сервера не достучались. Если включено сохранение сессии —
       // не трогаем токены, чтобы scheduler повторил рефреш позже, когда сеть вернётся.
-      if (keepSessionOnNetworkError && error instanceof NetworkError) {
+      if (kind === 'network' && keepSessionOnNetworkError) {
         __timedDebug__('🌐 Сетевая ошибка — сессия сохранена, повторим рефреш позже')
 
         throw error

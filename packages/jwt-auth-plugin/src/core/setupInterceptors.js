@@ -3,12 +3,13 @@ import { __timedDebug__ } from '../shared/debug'
 export const setupInterceptors = ({
   axiosInstance,
   tokenService,
+  getErrorKind,
   keys: { accessTokenRequestKey },
 }) => {
   const handleResponseError = async error => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (getErrorKind(error) === 'auth' && !originalRequest._retry) {
       return handleUnauthorizedError(originalRequest)
     }
 

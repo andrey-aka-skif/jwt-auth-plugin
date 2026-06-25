@@ -2,16 +2,30 @@
 import { ref } from 'vue'
 import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
 
-const { login, isAuthenticated: isAuth, user } = useAuth()
+const { login, isAuthenticated: isAuth, user, getErrorKind } = useAuth()
 
 const email_placeholder = 'admin@test.com'
 const password_placeholder = 'password123'
 
 const email = ref(email_placeholder)
 const password = ref(password_placeholder)
+const error = ref('')
 
 const onSubmit = async () => {
-  await login({ email: email.value, password: password.value })
+  error.value = ''
+
+  try {
+    await login({ email: email.value, password: password.value })
+  } catch (e) {
+    const kind = getErrorKind(e)
+
+    error.value =
+      kind === 'auth'
+        ? 'Неверный e-mail или пароль'
+        : kind === 'network'
+          ? 'Сервер недоступен, попробуйте позже'
+          : 'Не удалось войти'
+  }
 }
 </script>
 
@@ -31,6 +45,8 @@ const onSubmit = async () => {
       </div>
 
       <input type="submit" value="Login" @click="onSubmit" />
+
+      <div v-if="error" class="form-error">{{ error }}</div>
     </div>
 
     <div v-else>Пользователь `{{ user.email }}` уже авторизован.</div>
@@ -56,5 +72,10 @@ const onSubmit = async () => {
 .form-line input {
   width: 100%;
   box-sizing: border-box;
+}
+
+.form-error {
+  color: #c0392b;
+  font-size: 0.9em;
 }
 </style>
