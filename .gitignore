@@ -33,6 +33,9 @@ dist-ssr/
 *.tsbuildinfo
 !**.
 
+# Сгенерированный @hey-api SDK (воспроизводится из manifest через `npm run generate`)
+**/api/generated/
+
 
 # Environment variables
 .env*

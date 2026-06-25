@@ -15,6 +15,7 @@ export default defineConfig([
     '**/dist/**',
     '**/dist-ssr/**',
     '**/coverage/**',
+    '**/api/generated/**',
     'playgrounds/api/**',
   ]),
 

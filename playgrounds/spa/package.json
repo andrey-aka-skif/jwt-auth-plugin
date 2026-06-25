@@ -10,17 +10,20 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "format": "prettier --write src"
+    "format": "prettier --write src",
+    "generate": "openapi-ts",
+    "prepare": "npm run generate"
   },
   "dependencies": {
     "@andrey-aka-skif/jwt-auth-plugin": "*",
-    "vue": "^3.5.13",
-    "vue-router": "^4.5.0",
+    "axios": "^1.10.0",
     "pinia": "^3.0.1",
-    "axios": "^1.10.0"
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "vite-plugin-vue-devtools": "^7.7.2",
-    "eslint-plugin-vue": "~10.0.0"
+    "@hey-api/openapi-ts": "^0.99.0",
+    "eslint-plugin-vue": "~10.0.0",
+    "vite-plugin-vue-devtools": "^7.7.2"
   }
 }

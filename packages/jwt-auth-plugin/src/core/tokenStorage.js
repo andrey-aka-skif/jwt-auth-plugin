@@ -1,34 +1,22 @@
 export const createTokenStorage = ({
-  keys: {
-    accessTokenStorageKey,
-    refreshTokenStorageKey,
-    namespace = undefined,
-  },
+  keys: { accessTokenStorageKey, refreshTokenStorageKey },
 }) => {
-  let at = accessTokenStorageKey
-  let rt = refreshTokenStorageKey
-
-  if (namespace) {
-    at = `${namespace}:${accessTokenStorageKey}`
-    rt = `${namespace}:${refreshTokenStorageKey}`
-  }
-
   const saveTokenPair = ({ accessToken, refreshToken }) => {
-    localStorage.setItem(at, accessToken)
-    localStorage.setItem(rt, refreshToken)
+    localStorage.setItem(accessTokenStorageKey, accessToken)
+    localStorage.setItem(refreshTokenStorageKey, refreshToken)
   }
 
   const getAccessToken = () => {
-    return localStorage.getItem(at)
+    return localStorage.getItem(accessTokenStorageKey)
   }
 
   const getRefreshToken = () => {
-    return localStorage.getItem(rt)
+    return localStorage.getItem(refreshTokenStorageKey)
   }
 
   const clearTokens = () => {
-    localStorage.removeItem(at)
-    localStorage.removeItem(rt)
+    localStorage.removeItem(accessTokenStorageKey)
+    localStorage.removeItem(refreshTokenStorageKey)
   }
 
   return {
@@ -36,10 +24,5 @@ export const createTokenStorage = ({
     getAccessToken,
     getRefreshToken,
     clearTokens,
-    // Разрешённые (с учётом namespace) ключи localStorage — чтобы внешние
-    // подписчики (например, межвкладочная синхронизация) сравнивали с тем же
-    // ключом, под которым реально хранится токен.
-    accessTokenStorageKey: at,
-    refreshTokenStorageKey: rt,
   }
 }

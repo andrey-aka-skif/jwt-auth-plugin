@@ -1,7 +1,11 @@
 import { readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
 import { createAxiosAdapter } from '../adapters/axiosAdapter'
-import { formatMessage, resolveConfig } from '../shared/utils'
+import {
+  formatMessage,
+  resolveConfig,
+  resolveStorageKeys,
+} from '../shared/utils'
 import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 import { createTokenService } from './tokenService'
@@ -11,7 +15,6 @@ import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createRefreshScheduler } from './refreshScheduler'
 import { __timedDebug__ } from '../shared/debug'
-import { STRINGS } from '../shared/strings'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -48,12 +51,13 @@ export const createJwtAuthViaAxios = ({
       redirectPathes: config.redirect,
     })
 
+  // Финальные ключи localStorage резолвим один раз — и в хранилище, и в
+  // межвкладочную синхронизацию уходят одни и те же строки.
+  const { accessTokenStorageKey, refreshTokenStorageKey } =
+    resolveStorageKeys(config)
+
   tokenStorage = createTokenStorage({
-    keys: {
-      accessTokenStorageKey: config.token.access.storageKey,
-      refreshTokenStorageKey: config.token.refresh.storageKey,
-      namespace: STRINGS.name,
-    },
+    keys: { accessTokenStorageKey, refreshTokenStorageKey },
   })
 
   tokenService = createTokenService({
@@ -130,7 +134,7 @@ export const createJwtAuthViaAxios = ({
 
   setupCrossTabSync({
     keys: {
-      accessTokenStorageKey: tokenStorage.accessTokenStorageKey,
+      accessTokenStorageKey,
     },
     callbacks: {
       onTokenChange: () =>

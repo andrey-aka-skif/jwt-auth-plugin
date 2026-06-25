@@ -1,8 +1,14 @@
 import { REQUIRED } from '../shared/symbols'
+import { STRINGS } from '../shared/strings'
 
 export const DEFAULT_CONFIG = {
   api: {
     baseURL: REQUIRED,
+  },
+  storage: {
+    // Префикс ключей localStorage — изолирует токены этого инстанса плагина.
+    // Пустая строка / null отключают префикс (ключи используются как есть).
+    namespace: STRINGS.name,
   },
   plugin: {
     autoStart: true,
