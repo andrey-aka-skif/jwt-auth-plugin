@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "type": "module",
   "description": "JWT-аутентификация для Vue 3 / vue-router поверх axios: авто-рефреш токенов, межвкладочная синхронизация, гарды роутера",
+  "license": "MIT",
+  "author": "andrey-aka-skif",
   "keywords": [
     "jwt",
     "auth",
