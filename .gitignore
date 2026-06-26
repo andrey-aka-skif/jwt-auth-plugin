@@ -94,3 +94,7 @@ logs/
 *.nupkg
 *.snupkg
 *.vsix
+
+
+# LICENSE пакета генерируется из корневого через prepack — в git не трекаем
+/packages/jwt-auth-plugin/LICENSE
