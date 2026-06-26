@@ -1,4 +1,8 @@
-import { appendBackToPreviousQuery, resolveSavedPath } from '../shared/utils'
+import {
+  appendBackToPreviousQuery,
+  formatMessage,
+  resolveSavedPath,
+} from '../shared/utils'
 
 export const maybeAuthRedirect = ({
   sessionManager,
@@ -48,7 +52,9 @@ export const maybeAuthRedirect = ({
 
     router.push(target).catch(() => {
       console.error(
-        `Проверьте, что роут '${redirectOnNotAuthenticated}' существует`
+        formatMessage(
+          `Проверьте, что роут '${redirectOnNotAuthenticated}' существует`
+        )
       )
     })
   }

@@ -6,10 +6,7 @@ export const DEFAULT_CONFIG = {
     baseURL: REQUIRED,
   },
   storage: {
-    // Префикс ключей localStorage — изолирует токены этого инстанса плагина.
-    // Пустая строка / null отключают префикс (ключи используются как есть).
-    namespace: STRINGS.name,
-    // Ключи localStorage, под которыми хранится пара токенов.
+    namespace: STRINGS.name, // STRINGS.name | '' | null
     accessTokenKey: 'access-token',
     refreshTokenKey: 'auth_refresh_token',
   },
@@ -25,8 +22,7 @@ export const DEFAULT_CONFIG = {
     me: '/api/auth/me',
   },
   session: {
-    // Сохранять сессию при сетевой ошибке рефреша (opt-in). По умолчанию
-    // true: не рвём сессию при любом сбое рефреша.
+    // Сохранять сессию при ошибке сети во время рефреша токена
     keepSessionOnNetworkError: true,
     // Статусы ответа, при которых сессия считается невалидной → разлогин.
     logoutStatuses: [401],

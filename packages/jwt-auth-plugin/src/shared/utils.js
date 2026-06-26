@@ -52,9 +52,6 @@ export const formatMessage = message => {
   return `[${STRINGS.name}]: ${message}`
 }
 
-// Финальные ключи localStorage с учётом namespace. Единый источник истины —
-// одни и те же строки уходят и в хранилище, и в межвкладочную синхронизацию.
-// Пустой namespace → ключи используются как есть.
 export const resolveStorageKeys = ({ storage }) => {
   const { namespace, accessTokenKey, refreshTokenKey } = storage
   const withNamespace = key => (namespace ? `${namespace}:${key}` : key)
@@ -69,7 +66,9 @@ export const resolveStorageKeys = ({ storage }) => {
 // и не с '//'. Это отсекает абсолютные внешние URL (http://…, //evil.com),
 // поэтому путь из query безопасно использовать как цель редиректа.
 export const isSafeInternalPath = path => {
-  return typeof path === 'string' && path.startsWith('/') && !path.startsWith('//')
+  return (
+    typeof path === 'string' && path.startsWith('/') && !path.startsWith('//')
+  )
 }
 
 // Разбор сохранённого исходного пути из query. Возвращает безопасный

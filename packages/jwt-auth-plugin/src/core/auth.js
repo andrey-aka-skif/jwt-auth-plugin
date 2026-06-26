@@ -42,7 +42,6 @@ export const createJwtAuthViaAxios = ({
   let tokenService = null
   let sessionManager = null
 
-  // Как сообщить об ошибке?
   const lastError = ref(null)
 
   const maybeAuthRedirectViaAdapter = () =>
@@ -52,8 +51,6 @@ export const createJwtAuthViaAxios = ({
       redirectPathes: config.redirect,
     })
 
-  // Финальные ключи localStorage резолвим один раз — и в хранилище, и в
-  // межвкладочную синхронизацию уходят одни и те же строки.
   const { accessTokenStorageKey, refreshTokenStorageKey } =
     resolveStorageKeys(config)
 

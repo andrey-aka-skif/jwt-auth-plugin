@@ -1,3 +1,3 @@
 export const STRINGS = {
-  name: 'jwt-auth-plugin',
+  name: 'JWT-Auth',
 }
