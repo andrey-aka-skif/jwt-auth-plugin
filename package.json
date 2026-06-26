@@ -1,6 +1,7 @@
 {
   "name": "@andrey-aka-skif/jwt-auth-plugin-monorepo",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*",
     "playgrounds/*"
