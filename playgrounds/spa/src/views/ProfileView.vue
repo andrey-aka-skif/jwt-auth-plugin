@@ -1,7 +1,7 @@
 <script setup>
 import { useDataService } from '@/shared/services/dataService'
 
-const { data, getData } = useDataService()
+const { data, fetchData } = useDataService()
 </script>
 
 <template>
@@ -9,5 +9,5 @@ const { data, getData } = useDataService()
 
   <p>{{ data }}</p>
 
-  <div><button @click="getData">Update()</button></div>
+  <div><button @click="fetchData">Update()</button></div>
 </template>

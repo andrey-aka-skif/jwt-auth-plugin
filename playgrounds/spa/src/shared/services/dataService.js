@@ -7,18 +7,18 @@ import { getApiProtected } from '../api/generated'
 //
 // SDK сконфигурирован как есть (без throwOnError), поэтому возвращает { data, error }.
 export const useDataService = () => {
-  const d = ref(null)
+  const data = ref(null)
 
-  const getData = async () => {
-    const { data, error } = await getApiProtected()
+  const fetchData = async () => {
+    const { data: apiData, error } = await getApiProtected()
 
     if (error) {
       console.error(error)
       return
     }
 
-    d.value = data
+    data.value = apiData
   }
 
-  return { data: d, getData }
+  return { data, fetchData }
 }
