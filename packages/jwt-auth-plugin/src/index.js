@@ -1,2 +1,2 @@
-export { default } from './core'
-export * from './core'
+export { default } from './vue/plugin'
+export { useAuth } from './vue/useAuth'

@@ -25,63 +25,50 @@ createApp(App)
   .mount('#app')
 ```
 
-`api` в опциях `install` необязателен — если он не передан, плагин сам создаёт
-дефолтный адаптер поверх переданного `axiosInstance`.
+Плагин вешает на переданный `axiosInstance` интерсепторы (подстановка
+access-токена в запросы и рефреш при 401) и обслуживает auth-эндпоинты
+(`login` / `refresh` / `logout` / `me`) поверх него. Обязательные поля конфига —
+`api.baseURL` и `token.access.subKey` (claim, по которому различается пользователь
+в access-токене); остальное со значениями по умолчанию см. в
+[`src/core/defaultConfig.js`](src/core/defaultConfig.js).
 
-## Адаптеры API
+## Публичный API
 
-Плагин общается с бэкендом через **адаптер** — объект, который инкапсулирует и
-вызовы эндпоинтов, и трактовку ошибок конкретного клиента. Это позволяет
-подключить любой клиент (axios, fetch, сгенерированный @hey-api SDK и т. п.).
-
-### Контракт адаптера
-
-| Член | Назначение |
-|------|------------|
-| `login(credentials)` | Резолвится в `{ data }` с токенами под ключами из конфига |
-| `refresh(refreshToken)` | Резолвится в `{ data }` с новой парой токенов |
-| `me()` | Резолвится в `{ data }` с пользователем |
-| `logout(refreshToken)` | Завершает сессию на сервере |
-| `register(data)` | Регистрация |
-| `getErrorKind(error)` | Классифицирует ошибку клиента: `'auth' \| 'network' \| 'unknown'` |
-
-- Методы при ошибке **бросают** сырьё клиента — оборачивать в свои типы не нужно.
-- `getErrorKind` — единственная точка знания об ошибках клиента. Плагин использует
-  её, чтобы решить: при `'auth'` пытаться переаутентифицировать, при `'network'`
-  (и включённом `session.keepSessionOnNetworkError`) сохранить сессию и повторить
-  рефреш позже, иначе — разлогинить.
-
-Классификация возвращает строку-категорию (а не типизированную ошибку или
-`instanceof`) намеренно: сравнение значений не зависит от идентичности классов и
-не ломается при дублировании копий модуля в разных бандлах.
-
-### Работа со сгенерированным SDK (@hey-api и т. п.)
-
-Адаптер под SDK для auth писать не нужно: auth-эндпоинты (login/refresh/logout/me)
-обслуживает встроенный адаптер плагина, а **остальные** запросы приложение делает
-через свой SDK. Достаточно, чтобы SDK ходил через **тот же axios-инстанс**, что
-передан плагину, — тогда на запросы SDK действуют auth-интерсепторы (инъекция
-токена и рефреш на 401):
+`useAuth()` возвращает объект сессии:
 
 ```js
-import { client } from './api/generated/client.gen'
+import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
 
-// один инстанс на всех
-const axiosInstance = createHttpTransport({ baseURL })
-
-// SDK конфигурируем на этот же инстанс
-client.setConfig({ axios: axiosInstance })
-
-app.use(auth, { router, axiosInstance, config })
+const { login, logout, refresh, user, isReady, isAuthenticated, lastError, getErrorKind } = useAuth()
 ```
 
-> Рабочий пример целиком — в `playgrounds/spa` (`shared/api/http/httpTransport.js`,
-> `shared/api/setup/setupHeyApiClient.js`).
+| Поле | Назначение |
+|------|------------|
+| `login(credentials)` | Логин; пробрасывает исходную ошибку axios (не оборачивает) |
+| `logout()` | Выход (запрос на сервер + очистка сессии) |
+| `refresh()` | Ручной рефреш пары токенов |
+| `user` | `readonly`-ref с данными пользователя (или `null`) |
+| `isAuthenticated` | `readonly`-ref: есть ли активная сессия |
+| `isReady` | `readonly`-ref: завершена ли инициализация сессии |
+| `lastError` | `readonly`-ref: последняя ошибка рефреша |
+| `getErrorKind(error)` | Классифицирует ошибку: `'auth' \| 'network' \| 'unknown'` |
+
+## Защита маршрутов
+
+Гард читает `meta` маршрутов:
+
+- `meta.auth: true` — маршрут требует аутентификации; неаутентифицированного
+  редиректит на `config.redirect.onNotAuthenticated` (по умолчанию `{ name: 'login' }`);
+- `meta.redirectOnAuthenticated` — куда отправить уже аутентифицированного
+  (например, со страницы логина);
+- при `config.redirect.backToPreviousOnAuthenticated.enabled` исходный путь
+  сохраняется в query (`redirect` по умолчанию) и после логина пользователь
+  возвращается туда же (только безопасные внутренние пути).
 
 ## Обработка ошибки входа в UI
 
-`login` бросает сырую ошибку клиента. Чтобы единообразно её истолковать, используйте
-публичный `auth.getErrorKind`:
+`login` пробрасывает исходную ошибку axios (не оборачивая её). Чтобы единообразно
+её истолковать, используйте `getErrorKind`:
 
 ```js
 const { login, getErrorKind } = useAuth()
@@ -96,3 +83,28 @@ try {
   }
 }
 ```
+
+`getErrorKind` — единая трактовка ошибок: `'auth'` (статус из
+`config.session.logoutStatuses`, по умолчанию `[401]`) → переаутентификация,
+`'network'` (ответа нет) → при `config.session.keepSessionOnNetworkError` сессия
+сохраняется и рефреш повторяется позже, иначе — разлогин.
+
+## Работа со сгенерированным SDK (@hey-api и т. п.)
+
+Свои запросы (не auth) приложение делает через собственный SDK. Чтобы на них
+действовали те же auth-интерсепторы (токен и рефреш на 401), достаточно, чтобы SDK
+ходил через **тот же** `axiosInstance`, что передан плагину:
+
+```js
+import { client } from './api/generated/client.gen'
+
+const axiosInstance = createHttpTransport({ baseURL })
+
+// SDK конфигурируем на тот же инстанс
+client.setConfig({ axios: axiosInstance })
+
+app.use(auth, { router, axiosInstance, config })
+```
+
+> Рабочий пример целиком — в `playgrounds/spa` (`shared/api/http/httpTransport.js`,
+> `shared/api/setup/setupHeyApiClient.js`).

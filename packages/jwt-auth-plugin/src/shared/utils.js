@@ -65,7 +65,8 @@ export const resolveStorageKeys = ({ storage }) => {
 // Пропускаем только внутренние пути: строка, начинающаяся с одного '/'
 // и не с '//'. Это отсекает абсолютные внешние URL (http://…, //evil.com),
 // поэтому путь из query безопасно использовать как цель редиректа.
-export const isSafeInternalPath = path => {
+// Используется только внутри модуля (resolveSavedPath / appendBackToPreviousQuery).
+const isSafeInternalPath = path => {
   return (
     typeof path === 'string' && path.startsWith('/') && !path.startsWith('//')
   )

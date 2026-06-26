@@ -10,7 +10,7 @@ import { formatMessage } from '../shared/utils'
 
 export const createTokenService = ({
   tokenStorage,
-  api,
+  client,
   constants: {
     accessTokenExpirationThresholdMs,
     lockTimeout,
@@ -74,7 +74,7 @@ export const createTokenService = ({
       throw new Error(formatMessage('Рефреш токен не найден'))
     }
 
-    const { data } = await api.refresh(refreshToken)
+    const { data } = await client.refresh(refreshToken)
 
     const tokens = {
       accessToken: data[accessTokenResponseKey],
@@ -95,7 +95,7 @@ export const createTokenService = ({
     } catch (error) {
       __timedDebug__('ОШИБКА при рефреше токена:', error)
 
-      const kind = api.getErrorKind(error)
+      const kind = client.getErrorKind(error)
 
       if (kind === 'auth' && (await tryReadTokensAgain(oldSub))) {
         return

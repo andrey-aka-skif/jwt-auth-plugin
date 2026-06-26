@@ -2,7 +2,7 @@ import { computed, ref } from 'vue'
 import { __timedDebug__ } from '../shared/debug'
 
 export const createSessionManager = ({
-  api,
+  client,
   tokenService,
   keys: { accessTokenResponseKey, refreshTokenResponseKey },
   callbacks: { onRestoreSession, onClearSession },
@@ -21,7 +21,7 @@ export const createSessionManager = ({
   const login = async credentials => {
     __timedDebug__('🔐 login....')
 
-    const response = await api.login(credentials)
+    const response = await client.login(credentials)
 
     tokenService.saveTokenPair({
       accessToken: response.data[accessTokenResponseKey],
@@ -37,7 +37,7 @@ export const createSessionManager = ({
     const refreshToken = tokenService.getRefreshToken()
 
     try {
-      await api.logout(refreshToken)
+      await client.logout(refreshToken)
     } catch (error) {
       console.error('Ошибка при попытке разлогиниться на сервере:', error)
     } finally {
@@ -68,7 +68,7 @@ export const createSessionManager = ({
 
       __timedDebug__(`Новый sub: "${sub}". Запрос "/me"`)
 
-      const me = await api.me()
+      const me = await client.me()
 
       if (version !== sessionVersion) {
         __timedDebug__('Гонка восстановлений. Пропускаем восстановление')

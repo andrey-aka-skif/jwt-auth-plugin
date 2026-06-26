@@ -1,6 +1,6 @@
 import { readonly, ref } from 'vue'
 import { DEFAULT_CONFIG } from './defaultConfig'
-import { createAxiosAdapter } from '../adapters/axiosAdapter'
+import { createAxiosClient } from './axiosClient'
 import {
   formatMessage,
   resolveConfig,
@@ -19,7 +19,6 @@ import { __timedDebug__ } from '../shared/debug'
 export const createJwtAuthViaAxios = ({
   router,
   axiosInstance,
-  api = undefined,
   config = DEFAULT_CONFIG,
 }) => {
   if (!router) {
@@ -32,10 +31,8 @@ export const createJwtAuthViaAxios = ({
 
   config = resolveConfig(DEFAULT_CONFIG, config)
 
-  // Без api строим встроенный axios-адаптер поверх переданного инстанса.
-  if (!api) {
-    api = createAxiosAdapter({ axiosInstance, config })
-  }
+  // Встроенный HTTP-клиент поверх переданного axios-инстанса
+  const client = createAxiosClient({ axiosInstance, config })
 
   let tokenStorage = null
   let scheduler = null
@@ -60,7 +57,7 @@ export const createJwtAuthViaAxios = ({
 
   tokenService = createTokenService({
     tokenStorage,
-    api,
+    client,
     constants: {
       accessTokenExpirationThresholdMs:
         config.token.refresh.checkIntervalThresholdMinutes * 60 * 1000,
@@ -93,7 +90,7 @@ export const createJwtAuthViaAxios = ({
   })
 
   sessionManager = createSessionManager({
-    api,
+    client,
     tokenService,
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
@@ -118,7 +115,7 @@ export const createJwtAuthViaAxios = ({
   setupInterceptors({
     axiosInstance,
     tokenService,
-    getErrorKind: api.getErrorKind,
+    getErrorKind: client.getErrorKind,
     keys: {
       accessTokenRequestKey: config.token.access.requestKey,
     },
@@ -165,8 +162,8 @@ export const createJwtAuthViaAxios = ({
     isAuthenticated: readonly(sessionManager.isAuthenticated),
     lastError: readonly(lastError),
     // Публичная классификация ошибок — чтобы UI единообразно интерпретировал
-    // ошибку login (login по-прежнему бросает сырьё): 'auth' | 'network' | 'unknown'.
-    getErrorKind: api.getErrorKind,
+    // ошибку login (login пробрасывает исходную ошибку): 'auth' | 'network' | 'unknown'.
+    getErrorKind: client.getErrorKind,
   }
 
   if (config.plugin.autoStart) {

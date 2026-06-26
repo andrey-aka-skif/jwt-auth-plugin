@@ -1,15 +1,13 @@
 import axios from 'axios'
 import { formatMessage } from '../shared/utils'
 
-// Внутренний дефолтный адаптер поверх axios. Создаётся автоматически в auth.js,
-// когда вызывающий код не передал свой api. Публично не экспортируется.
+// Встроенный HTTP-клиент поверх axios для auth-эндпоинтов. Создаётся в auth.js,
+// публично не экспортируется.
 //
-// Контракт адаптера:
-//  - методы эндпоинтов вызывают клиент и резолвятся в { data }; при ошибке
-//    бросают сырьё (не оборачивают);
+//  - методы эндпоинтов вызывают axios и резолвятся в { data };
 //  - getErrorKind(error) — единственная точка знания об ошибках этого клиента,
 //    возвращает одну категорию: 'auth' | 'network' | 'unknown'.
-export const createAxiosAdapter = ({ axiosInstance, config }) => {
+export const createAxiosClient = ({ axiosInstance, config }) => {
   if (!axiosInstance) {
     throw new Error(formatMessage('Не передан экземпляр axios'))
   }
