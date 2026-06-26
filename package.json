@@ -10,7 +10,7 @@
     "dev": "npm run dev -w playgrounds/spa",
     "preview": "npm run preview -w playground-spa",
     "build": "npm run build -w @andrey-aka-skif/jwt-auth-plugin",
-    "test": "npm run test --workspaces",
+    "test": "npm run test --workspaces --if-present",
     "lint": "eslint ."
   },
   "devDependencies": {
