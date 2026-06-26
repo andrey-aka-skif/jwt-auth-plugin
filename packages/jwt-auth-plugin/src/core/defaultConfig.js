@@ -8,7 +8,7 @@ export const DEFAULT_CONFIG = {
   storage: {
     namespace: STRINGS.name, // STRINGS.name | '' | null
     accessTokenKey: 'access-token',
-    refreshTokenKey: 'auth_refresh_token',
+    refreshTokenKey: 'refresh-token',
   },
   plugin: {
     autoStart: true,

@@ -1,14 +1,14 @@
-# jwt-auth-plugin (монорепо)
+# jwt-auth-plugin (монорепозиторий)
 
-Монорепо плагина JWT-аутентификации для Vue 3. Основная документация плагина —
-в пакете: [`packages/jwt-auth-plugin/README.md`](packages/jwt-auth-plugin/README.md).
+Монорепозиторий плагина JWT-аутентификации для Vue 3. Основная документация
+плагина — в пакете: [`packages/jwt-auth-plugin/README.md`](packages/jwt-auth-plugin/README.md).
 
 ## Структура
 
 - `packages/jwt-auth-plugin` — сам плагин (публикуемый npm-пакет).
 - `playgrounds/spa` — демо-приложение на Vue 3 + Vite (в т. ч. пример работы со
   сгенерированным @hey-api SDK поверх общего axios-инстанса).
-- `playgrounds/api` — бэкенд для демо (ASP.NET, выдаёт OpenAPI-спеку).
+- `playgrounds/api` — бэкенд для демо (ASP.NET, выдаёт OpenAPI-спецификацию).
 
 ## Команды (из корня)
 
@@ -18,7 +18,7 @@ npm run build    # собрать плагин
 npm run lint     # eslint по всему репо
 ```
 
-SDK в `playgrounds/spa` генерируется из снапшота спеки
+SDK в `playgrounds/spa` генерируется из снапшота спецификации
 (`src/shared/api/openApiManifest/swagger.json`) и в гит не коммитится:
 
 ```bash
