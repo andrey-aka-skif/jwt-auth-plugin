@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const createSessionManager = ({
   client,
@@ -19,8 +18,6 @@ export const createSessionManager = ({
   const isAuthenticated = computed(() => !!user.value)
 
   const login = async credentials => {
-    traceLog('🔐 login....')
-
     const response = await client.login(credentials)
 
     tokenService.saveTokenPair({
@@ -28,12 +25,10 @@ export const createSessionManager = ({
       refreshToken: response.data[refreshTokenResponseKey],
     })
 
-    await tryRestoreSession('login')
+    await tryRestoreSession()
   }
 
   const logout = async () => {
-    traceLog('🔐 logout....')
-
     const refreshToken = tokenService.getRefreshToken()
 
     try {
@@ -45,42 +40,30 @@ export const createSessionManager = ({
     }
   }
 
-  const tryRestoreSession = async origin => {
+  const tryRestoreSession = async () => {
     const version = sessionVersion
 
     try {
-      traceLog(`⟳ restore session. Вызов из: "${origin}"`)
-
       if (!tokenService.isAccessTokenExist()) {
-        traceLog('Нет токена. Восстановить сессию невозможно')
-
         clear()
         return
       }
 
       if (!tokenService.isUserChanged(sub)) {
-        traceLog('Пользователь не изменился')
-
         return
       }
 
       sub = tokenService.getAccessTokenSub()
 
-      traceLog(`Новый sub: "${sub}". Запрос "/me"`)
-
       const me = await client.me()
 
       if (version !== sessionVersion) {
-        traceLog('Гонка восстановлений. Пропускаем восстановление')
-
         return
       }
 
       user.value = me.data
       onRestoreSession?.()
-    } catch (error) {
-      traceLog('Ошибка в tryRestoreSession:', error)
-
+    } catch {
       clear()
     } finally {
       isReady.value = true
@@ -104,7 +87,7 @@ export const createSessionManager = ({
 
     initializationPromise = (async () => {
       try {
-        await tryRestoreSession('initialize')
+        await tryRestoreSession()
       } finally {
         isReady.value = true
       }

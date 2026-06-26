@@ -1,5 +1,3 @@
-import { traceLog } from '@andrey-aka-skif/debug-utils'
-
 export const _decodeToken = token => {
   try {
     const base64Url = token.split('.')[1]
@@ -50,17 +48,6 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
   }
 
   const remaining = _getAccessTokenRemainingLifetime(accessToken)
-
-  // debug---
-  traceLog(
-    'remaining',
-    remaining,
-    'thresholdMs',
-    thresholdMs,
-    'remaining < thresholdMs',
-    remaining < thresholdMs
-  )
-  // ---debug
 
   return remaining < thresholdMs
 }

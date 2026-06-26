@@ -1,5 +1,3 @@
-import { traceLog } from '@andrey-aka-skif/debug-utils'
-
 export const setupInterceptors = ({
   axiosInstance,
   tokenService,
@@ -28,8 +26,6 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
-      traceLog('ИНТЕРСЕПТОР перехватил ошибку', refreshError)
-
       return Promise.reject(refreshError)
     }
   }

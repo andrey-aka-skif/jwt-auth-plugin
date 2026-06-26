@@ -1,13 +1,9 @@
-import { traceLog } from '@andrey-aka-skif/debug-utils'
-
 export const setupCrossTabSync = ({
   keys: { accessTokenStorageKey },
   callbacks: { onTokenChange },
 }) => {
-  const listener = async event => {
+  const listener = event => {
     if (event.key === accessTokenStorageKey) {
-      traceLog('⇄ localStorage storage event')
-
       onTokenChange?.()
     }
   }

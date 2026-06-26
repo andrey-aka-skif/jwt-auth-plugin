@@ -48,13 +48,6 @@ export default defineConfig([
       'no-restricted-imports': [
         'warn',
         {
-          paths: [
-            {
-              name: '@andrey-aka-skif/debug-utils',
-              message:
-                'Отладочный код не должен попадать в прикладной/прод-код',
-            },
-          ],
           patterns: [
             {
               group: [

@@ -9,7 +9,7 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['vue', 'vue-router', 'axios', '@andrey-aka-skif/debug-utils'],
+      external: ['vue', 'vue-router', 'axios'],
     },
   },
 })

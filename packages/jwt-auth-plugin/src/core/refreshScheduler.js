@@ -1,5 +1,3 @@
-import { traceLog } from '@andrey-aka-skif/debug-utils'
-
 export const createRefreshScheduler = ({
   constants: { intervalMs, checkJitterPercent },
   callbacks: { onNext },
@@ -18,9 +16,8 @@ export const createRefreshScheduler = ({
     refreshTimer = setTimeout(async () => {
       try {
         await onNext?.()
-      } catch (error) {
-        traceLog('⚠ Шедулер перехватил ошибку', error)
-        // nothing
+      } catch {
+        // проглатываем: следующий тик попробует снова
       } finally {
         if (!stopped) {
           tick()
@@ -30,8 +27,6 @@ export const createRefreshScheduler = ({
   }
 
   const start = () => {
-    traceLog('⏵ Scheduler...')
-
     stop()
     stopped = false
     tick()

@@ -14,7 +14,6 @@ import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createRefreshScheduler } from './refreshScheduler'
-import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -71,21 +70,15 @@ export const createJwtAuthViaAxios = ({
       refreshTokenResponseKey: config.token.refresh.responseKey,
       lockKey: config.token.refresh.lockKey,
       subKey: config.token.access.subKey,
-      accessTokenStorageKey,
-      refreshTokenStorageKey,
     },
     callbacks: {
       onRefreshFailure: error => {
-        traceLog('💀 Рефреш токена не удался. Очищаем сессию')
-
         lastError.value = error
         sessionManager.clear()
         maybeAuthRedirectViaAdapter()
       },
       onChangeUser: () => {
-        traceLog('Сменился пользователь')
-
-        sessionManager.tryRestoreSession('tokenService.onChangeUser')
+        sessionManager.tryRestoreSession()
         maybeAuthRedirectViaAdapter()
       },
     },
@@ -100,14 +93,10 @@ export const createJwtAuthViaAxios = ({
     },
     callbacks: {
       onRestoreSession: () => {
-        traceLog('✓ Сессия восстановлена')
-
         scheduler?.start()
         maybeAuthRedirectViaAdapter()
       },
       onClearSession: () => {
-        traceLog('○ Сессия очищена')
-
         scheduler?.stop()
         maybeAuthRedirectViaAdapter()
       },
@@ -134,8 +123,7 @@ export const createJwtAuthViaAxios = ({
       accessTokenStorageKey,
     },
     callbacks: {
-      onTokenChange: () =>
-        sessionManager.tryRestoreSession('auth.setupCrossTabSync'),
+      onTokenChange: () => sessionManager.tryRestoreSession(),
     },
   })
 
@@ -147,8 +135,6 @@ export const createJwtAuthViaAxios = ({
       },
       callbacks: {
         onNext: async () => {
-          traceLog('⏱')
-
           await tokenService.tryRefreshTokens('scheduler')
         },
       },
