@@ -55,25 +55,52 @@ createApp(App)
 `instanceof`) намеренно: сравнение значений не зависит от идентичности классов и
 не ломается при дублировании копий модуля в разных бандлах.
 
-### Кастомный адаптер (на примере @hey-api)
+### Адаптер поверх @hey-api SDK
 
-Готовый референс экспортируется из пакета — его же удобно взять за образец:
+Пакет экспортирует референсный `createHeyApiAdapter` для axios-флавора @hey-api
+клиента (`throwOnError: true`). Конкретику бэкенда задаёт `operations` (простой
+маппер контракта на сгенерированные функции), а контракт (ключ тела refresh,
+статусы разлогина) адаптер читает из конфига — единого источника.
+
+Чтобы адаптер получил уже **resolved**-конфиг (со слитыми дефолтами), `api`
+передают **фабрикой** `(config) => adapter`: плагин резолвит конфиг у себя и
+вызывает её с готовым.
 
 ```js
-import { createHeyApiAdapter } from '@andrey-aka-skif/jwt-auth-plugin'
-import * as sdk from './api/generated'
+import auth, { createHeyApiAdapter } from '@andrey-aka-skif/jwt-auth-plugin'
+import { createClient, createConfig } from './api/generated/client'
+import {
+  postApiAuthLogin,
+  postApiAuthRefresh,
+  postApiAuthLogout,
+  getApiAuthMe,
+} from './api/generated'
+import axiosInstance from './api/instance'
+
+// Клиент SDK строим поверх того же axios-инстанса, что отдаём плагину, — тогда
+// запросы SDK идут через auth-интерсепторы (инъекция токена и рефреш на 401).
+const client = createClient(
+  createConfig({ axios: axiosInstance, baseURL, throwOnError: true })
+)
+
+const operations = {
+  login: postApiAuthLogin,
+  refresh: postApiAuthRefresh,
+  me: getApiAuthMe,
+  logout: postApiAuthLogout,
+}
 
 app.use(auth, {
   router,
   axiosInstance,
-  api: createHeyApiAdapter({ sdk, config }),
+  api: config => createHeyApiAdapter({ client, operations, config }),
   config,
 })
 ```
 
-> Точная форма результата/ошибок @hey-api зависит от версии и выбранного клиента
-> (fetch/axios). Адаптер — образец: подгоните обращения к полям под свою генерацию.
-> Вся клиент-специфичная логика остаётся внутри одного файла адаптера.
+> Имена операций зависят от спеки (`operationId`/путь), а флавор клиента — от
+> генерации. Референс рассчитан на axios-клиент; для иного клиента поправьте
+> построение `client`. Рабочий пример целиком — в `playgrounds/spa`.
 
 ## Обработка ошибки входа в UI
 

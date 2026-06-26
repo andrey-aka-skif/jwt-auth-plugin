@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { formatMessage } from '../shared/utils'
+import { axiosErrorKind } from './axiosErrorKind'
 
 // Внутренний дефолтный адаптер поверх axios. Создаётся автоматически в auth.js,
 // когда вызывающий код не передал свой api. Публично не экспортируется.
@@ -63,22 +64,7 @@ export const createAxiosAdapter = ({ axiosInstance, config }) => {
 
     // Классификация ошибок именно axios-клиента.
     getErrorKind(error) {
-      // Не axios-ошибка — судить о ней не можем.
-      if (!axios.isAxiosError(error)) {
-        return 'unknown'
-      }
-
-      // Ответа нет — до сервера не достучались. Сессия не обязательно невалидна.
-      if (!error.response) {
-        return 'network'
-      }
-
-      // Сервер явно сообщил, что аутентификация невалидна.
-      if (logoutStatuses.includes(error.response.status)) {
-        return 'auth'
-      }
-
-      return 'unknown'
+      return axiosErrorKind(error, logoutStatuses)
     },
   }
 }

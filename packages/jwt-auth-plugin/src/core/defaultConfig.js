@@ -9,6 +9,9 @@ export const DEFAULT_CONFIG = {
     // Префикс ключей localStorage — изолирует токены этого инстанса плагина.
     // Пустая строка / null отключают префикс (ключи используются как есть).
     namespace: STRINGS.name,
+    // Ключи localStorage, под которыми хранится пара токенов.
+    accessTokenKey: 'access-token',
+    refreshTokenKey: 'auth_refresh_token',
   },
   plugin: {
     autoStart: true,
@@ -39,14 +42,12 @@ export const DEFAULT_CONFIG = {
     access: {
       responseKey: 'access_token',
       requestKey: 'Authorization',
-      storageKey: 'access-token',
       subKey: REQUIRED,
     },
     refresh: {
       responseKey: 'refresh_token',
       requestKey: 'refresh_token', // 'refresh_token' | 'X-Refresh-Token'
       requestMethod: 'body', // 'body' | 'header'
-      storageKey: 'auth_refresh_token',
       checkIntervalMinutes: 1,
       checkIntervalThresholdMinutes: 5,
       checkJitterPercent: 0.1,

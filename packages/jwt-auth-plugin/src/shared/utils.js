@@ -55,13 +55,13 @@ export const formatMessage = message => {
 // Финальные ключи localStorage с учётом namespace. Единый источник истины —
 // одни и те же строки уходят и в хранилище, и в межвкладочную синхронизацию.
 // Пустой namespace → ключи используются как есть.
-export const resolveStorageKeys = ({ storage, token }) => {
-  const namespace = storage?.namespace
+export const resolveStorageKeys = ({ storage }) => {
+  const { namespace, accessTokenKey, refreshTokenKey } = storage
   const withNamespace = key => (namespace ? `${namespace}:${key}` : key)
 
   return {
-    accessTokenStorageKey: withNamespace(token.access.storageKey),
-    refreshTokenStorageKey: withNamespace(token.refresh.storageKey),
+    accessTokenStorageKey: withNamespace(accessTokenKey),
+    refreshTokenStorageKey: withNamespace(refreshTokenKey),
   }
 }
 
