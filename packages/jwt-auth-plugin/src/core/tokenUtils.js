@@ -1,4 +1,4 @@
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const _decodeToken = token => {
   try {
@@ -52,7 +52,7 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
   const remaining = _getAccessTokenRemainingLifetime(accessToken)
 
   // debug---
-  __timedDebug__(
+  traceLog(
     'remaining',
     remaining,
     'thresholdMs',

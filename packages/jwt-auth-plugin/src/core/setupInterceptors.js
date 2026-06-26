@@ -1,4 +1,4 @@
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const setupInterceptors = ({
   axiosInstance,
@@ -28,7 +28,7 @@ export const setupInterceptors = ({
 
       return axiosInstance(originalRequest)
     } catch (refreshError) {
-      __timedDebug__('ИНТЕРСЕПТОР перехватил ошибку', refreshError)
+      traceLog('ИНТЕРСЕПТОР перехватил ошибку', refreshError)
 
       return Promise.reject(refreshError)
     }

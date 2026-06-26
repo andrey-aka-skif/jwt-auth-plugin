@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const createSessionManager = ({
   client,
@@ -19,7 +19,7 @@ export const createSessionManager = ({
   const isAuthenticated = computed(() => !!user.value)
 
   const login = async credentials => {
-    __timedDebug__('🔐 login....')
+    traceLog('🔐 login....')
 
     const response = await client.login(credentials)
 
@@ -32,7 +32,7 @@ export const createSessionManager = ({
   }
 
   const logout = async () => {
-    __timedDebug__('🔐 logout....')
+    traceLog('🔐 logout....')
 
     const refreshToken = tokenService.getRefreshToken()
 
@@ -49,29 +49,29 @@ export const createSessionManager = ({
     const version = sessionVersion
 
     try {
-      __timedDebug__(`⟳ restore session. Вызов из: "${origin}"`)
+      traceLog(`⟳ restore session. Вызов из: "${origin}"`)
 
       if (!tokenService.isAccessTokenExist()) {
-        __timedDebug__('Нет токена. Восстановить сессию невозможно')
+        traceLog('Нет токена. Восстановить сессию невозможно')
 
         clear()
         return
       }
 
       if (!tokenService.isUserChanged(sub)) {
-        __timedDebug__('Пользователь не изменился')
+        traceLog('Пользователь не изменился')
 
         return
       }
 
       sub = tokenService.getAccessTokenSub()
 
-      __timedDebug__(`Новый sub: "${sub}". Запрос "/me"`)
+      traceLog(`Новый sub: "${sub}". Запрос "/me"`)
 
       const me = await client.me()
 
       if (version !== sessionVersion) {
-        __timedDebug__('Гонка восстановлений. Пропускаем восстановление')
+        traceLog('Гонка восстановлений. Пропускаем восстановление')
 
         return
       }
@@ -79,7 +79,7 @@ export const createSessionManager = ({
       user.value = me.data
       onRestoreSession?.()
     } catch (error) {
-      __timedDebug__('Ошибка в tryRestoreSession:', error)
+      traceLog('Ошибка в tryRestoreSession:', error)
 
       clear()
     } finally {

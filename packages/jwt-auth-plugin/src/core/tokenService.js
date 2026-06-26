@@ -1,4 +1,4 @@
-import { __tokensFingerprint__, __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { storageFingerprint, traceLog } from '@andrey-aka-skif/debug-utils'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,
@@ -18,12 +18,19 @@ export const createTokenService = ({
     raceWaitMaxAttempts,
     keepSessionOnNetworkError,
   },
-  keys: { accessTokenResponseKey, refreshTokenResponseKey, lockKey, subKey },
+  keys: {
+    accessTokenResponseKey,
+    refreshTokenResponseKey,
+    lockKey,
+    subKey,
+    accessTokenStorageKey,
+    refreshTokenStorageKey,
+  },
   callbacks: { onRefreshFailure, onChangeUser },
 }) => {
   const tryReadTokensAgain = async oldSub => {
     for (let attempt = 1; attempt <= raceWaitMaxAttempts; attempt++) {
-      __timedDebug__(`Ждем ${raceWaitIntervalMs} мс`)
+      traceLog(`Ждем ${raceWaitIntervalMs} мс`)
 
       await _sleep(raceWaitIntervalMs)
 
@@ -31,16 +38,21 @@ export const createTokenService = ({
       const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
 
       // debug---
-      __timedDebug__(
+      traceLog(
         `Перечитываем токен, попытка ${attempt}/${raceWaitMaxAttempts}`
       )
-      __tokensFingerprint__(tokenStorage)
-      __timedDebug__('isAccessTokenExist():', isAccessTokenExist)
-      __timedDebug__(
+      traceLog(
+        storageFingerprint([
+          { key: accessTokenStorageKey, label: 'at' },
+          { key: refreshTokenStorageKey, label: 'rt' },
+        ])
+      )
+      traceLog('isAccessTokenExist():', isAccessTokenExist)
+      traceLog(
         'isUserChanged():',
         _isUserChanged(oldSub, newAccessToken, subKey)
       )
-      __timedDebug__(
+      traceLog(
         'shouldRefreshToken():',
         _shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
       )
@@ -58,7 +70,7 @@ export const createTokenService = ({
         isAccessTokenExist &&
         !_shouldRefreshToken(newAccessToken, accessTokenExpirationThresholdMs)
       ) {
-        __timedDebug__('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
+        traceLog('Есть новый токен. Кто-то обновил за нас. >>>>>>>>>>>>>')
 
         return true
       }
@@ -82,7 +94,12 @@ export const createTokenService = ({
     }
 
     tokenStorage.saveTokenPair(tokens)
-    __tokensFingerprint__(tokenStorage)
+    traceLog(
+        storageFingerprint([
+          { key: accessTokenStorageKey, label: 'at' },
+          { key: refreshTokenStorageKey, label: 'rt' },
+        ])
+      )
   }
 
   const tryRefreshTokensUnderLock = async accessToken => {
@@ -91,9 +108,9 @@ export const createTokenService = ({
     try {
       await refreshTokens()
 
-      __timedDebug__('● Токены обновлены')
+      traceLog('● Токены обновлены')
     } catch (error) {
-      __timedDebug__('ОШИБКА при рефреше токена:', error)
+      traceLog('ОШИБКА при рефреше токена:', error)
 
       const kind = client.getErrorKind(error)
 
@@ -104,12 +121,12 @@ export const createTokenService = ({
       // Сетевой сбой: до сервера не достучались. Если включено сохранение сессии —
       // не трогаем токены, чтобы scheduler повторил рефреш позже, когда сеть вернётся.
       if (kind === 'network' && keepSessionOnNetworkError) {
-        __timedDebug__('🌐 Сетевая ошибка — сессия сохранена, повторим рефреш позже')
+        traceLog('🌐 Сетевая ошибка — сессия сохранена, повторим рефреш позже')
 
         throw error
       }
 
-      __timedDebug__('Перечитать токен не удалось')
+      traceLog('Перечитать токен не удалось')
 
       tokenStorage.clearTokens()
       onRefreshFailure?.(error)

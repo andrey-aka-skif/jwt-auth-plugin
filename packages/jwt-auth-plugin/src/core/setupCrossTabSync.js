@@ -1,4 +1,4 @@
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const setupCrossTabSync = ({
   keys: { accessTokenStorageKey },
@@ -6,7 +6,7 @@ export const setupCrossTabSync = ({
 }) => {
   const listener = async event => {
     if (event.key === accessTokenStorageKey) {
-      __timedDebug__('⇄ localStorage storage event')
+      traceLog('⇄ localStorage storage event')
 
       onTokenChange?.()
     }

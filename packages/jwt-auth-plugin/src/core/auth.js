@@ -14,7 +14,7 @@ import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createRefreshScheduler } from './refreshScheduler'
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const createJwtAuthViaAxios = ({
   router,
@@ -71,17 +71,19 @@ export const createJwtAuthViaAxios = ({
       refreshTokenResponseKey: config.token.refresh.responseKey,
       lockKey: config.token.refresh.lockKey,
       subKey: config.token.access.subKey,
+      accessTokenStorageKey,
+      refreshTokenStorageKey,
     },
     callbacks: {
       onRefreshFailure: error => {
-        __timedDebug__('💀 Рефреш токена не удался. Очищаем сессию')
+        traceLog('💀 Рефреш токена не удался. Очищаем сессию')
 
         lastError.value = error
         sessionManager.clear()
         maybeAuthRedirectViaAdapter()
       },
       onChangeUser: () => {
-        __timedDebug__('Сменился пользователь')
+        traceLog('Сменился пользователь')
 
         sessionManager.tryRestoreSession('tokenService.onChangeUser')
         maybeAuthRedirectViaAdapter()
@@ -98,13 +100,13 @@ export const createJwtAuthViaAxios = ({
     },
     callbacks: {
       onRestoreSession: () => {
-        __timedDebug__('✓ Сессия восстановлена')
+        traceLog('✓ Сессия восстановлена')
 
         scheduler?.start()
         maybeAuthRedirectViaAdapter()
       },
       onClearSession: () => {
-        __timedDebug__('○ Сессия очищена')
+        traceLog('○ Сессия очищена')
 
         scheduler?.stop()
         maybeAuthRedirectViaAdapter()
@@ -145,7 +147,7 @@ export const createJwtAuthViaAxios = ({
       },
       callbacks: {
         onNext: async () => {
-          __timedDebug__('⏱')
+          traceLog('⏱')
 
           await tokenService.tryRefreshTokens('scheduler')
         },

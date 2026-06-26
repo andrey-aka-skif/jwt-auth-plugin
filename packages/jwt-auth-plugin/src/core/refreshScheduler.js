@@ -1,4 +1,4 @@
-import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
+import { traceLog } from '@andrey-aka-skif/debug-utils'
 
 export const createRefreshScheduler = ({
   constants: { intervalMs, checkJitterPercent },
@@ -19,7 +19,7 @@ export const createRefreshScheduler = ({
       try {
         await onNext?.()
       } catch (error) {
-        __timedDebug__('⚠ Шедулер перехватил ошибку', error)
+        traceLog('⚠ Шедулер перехватил ошибку', error)
         // nothing
       } finally {
         if (!stopped) {
@@ -30,7 +30,7 @@ export const createRefreshScheduler = ({
   }
 
   const start = () => {
-    __timedDebug__('⏵ Scheduler...')
+    traceLog('⏵ Scheduler...')
 
     stop()
     stopped = false
