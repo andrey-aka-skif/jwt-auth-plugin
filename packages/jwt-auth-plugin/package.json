@@ -2,6 +2,30 @@
   "name": "@andrey-aka-skif/jwt-auth-plugin",
   "version": "0.1.0",
   "type": "module",
+  "description": "JWT-аутентификация для Vue 3 / vue-router поверх axios: авто-рефреш токенов, межвкладочная синхронизация, гарды роутера",
+  "keywords": [
+    "jwt",
+    "auth",
+    "authentication",
+    "vue",
+    "vue-router",
+    "axios",
+    "token",
+    "refresh-token",
+    "spa"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/andrey-aka-skif/draft-jwt-auth-plugin.git",
+    "directory": "packages/jwt-auth-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/andrey-aka-skif/draft-jwt-auth-plugin/issues"
+  },
+  "homepage": "https://github.com/andrey-aka-skif/draft-jwt-auth-plugin#readme",
+  "engines": {
+    "node": ">=20"
+  },
   "exports": {
     ".": "./dist/index.js"
   },
