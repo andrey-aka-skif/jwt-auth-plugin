@@ -32,14 +32,9 @@ export const createJwtAuthViaAxios = ({
 
   config = resolveConfig(DEFAULT_CONFIG, config)
 
-  // api можно передать готовым объектом-адаптером, либо фабрикой
-  // (config) => adapter — тогда плагин вызывает её с уже resolved-конфигом
-  // (внешний адаптер видит те же дефолты контракта, что и ядро). Без api —
-  // строим встроенный axios-адаптер.
+  // Без api строим встроенный axios-адаптер поверх переданного инстанса.
   if (!api) {
     api = createAxiosAdapter({ axiosInstance, config })
-  } else if (typeof api === 'function') {
-    api = api(config)
   }
 
   let tokenStorage = null
