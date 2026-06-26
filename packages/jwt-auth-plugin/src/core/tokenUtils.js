@@ -1,4 +1,4 @@
-import { __timedDebug__ } from '../shared/debug'
+import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
 
 export const _decodeToken = token => {
   try {

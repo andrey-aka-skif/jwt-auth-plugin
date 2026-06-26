@@ -14,6 +14,7 @@
     "format": "prettier --write src"
   },
   "dependencies": {
+    "@andrey-aka-skif/debug-utils": "file:../../../draft-debug-utils",
     "axios": "^1.10.0"
   },
   "peerDependencies": {

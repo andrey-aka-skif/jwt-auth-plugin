@@ -1,4 +1,4 @@
-import { __tokensFingerprint__, __timedDebug__ } from '../shared/debug'
+import { __tokensFingerprint__, __timedDebug__ } from '@andrey-aka-skif/debug-utils'
 import {
   _getAccessTokenSub,
   _isAccessTokenExist,

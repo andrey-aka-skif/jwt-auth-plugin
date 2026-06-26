@@ -14,7 +14,7 @@ import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createRefreshScheduler } from './refreshScheduler'
-import { __timedDebug__ } from '../shared/debug'
+import { __timedDebug__ } from '@andrey-aka-skif/debug-utils'
 
 export const createJwtAuthViaAxios = ({
   router,
