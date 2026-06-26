@@ -1,0 +1,76 @@
+name: Publish
+
+# Публикация пакета @andrey-aka-skif/jwt-auth-plugin в GitHub Packages.
+# Версия берётся из git-тега vX.Y.Z (в манифесте всегда 0.0.0).
+# Триггеры:
+#   - publish GitHub Release (тег релиза → версия пакета, dist-tag latest);
+#   - ручной запуск с тегом — пересборка/переиздание (dist-tag из npm-tag, по умолчанию replay).
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Тег для сборки и публикации (формат vX.Y.Z)'
+        required: true
+      npm-tag:
+        description: >
+          dist-tag для ручной публикации. По умолчанию replay — паркинг-тег,
+          который НЕ сдвигает latest (нужно при пересборке/бэкфилле старой версии).
+        required: false
+        default: replay
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  PACKAGE: '@andrey-aka-skif/jwt-auth-plugin'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (по тегу события или указанному вручную)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          registry-url: https://npm.pkg.github.com
+          scope: '@andrey-aka-skif'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Проставить версию из тега (манифест остаётся 0.0.0 в git)
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          VERSION="${TAG#v}"
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+([-.+].*)?$'; then
+            echo "Тег '$TAG' не соответствует формату vX.Y.Z" >&2
+            exit 1
+          fi
+          npm version --no-git-tag-version --allow-same-version "$VERSION" -w "$PACKAGE"
+
+      - name: Build
+        run: npm run build
+
+      # dist-tag: релиз → latest; ручной запуск → npm-tag (по умолчанию replay).
+      # prepack пакета копирует корневой LICENSE в тарбол. Auth — NODE_AUTH_TOKEN.
+      - name: Publish to GitHub Packages
+        env:
+          NPM_TAG: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.npm-tag || 'latest' }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish -w "$PACKAGE" --tag "$NPM_TAG"
