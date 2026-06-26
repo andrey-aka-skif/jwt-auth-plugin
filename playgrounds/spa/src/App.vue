@@ -13,14 +13,12 @@ const showPlaceholder = computed(() => {
 </script>
 
 <template>
-  <header>
+  <header class="header">
     <RouterLink :to="{ name: 'home' }">Home</RouterLink>
-    &nbsp;|&nbsp;
     <RouterLink :to="{ name: 'profile' }">Profile</RouterLink>
-    &nbsp;|&nbsp;
     <RouterLink :to="{ name: 'login' }">Login</RouterLink>
-    &nbsp;|&nbsp; User: {{ user?.email }}
-    <button @click="logout">logout</button>
+    <span>User: {{ user?.email || 'Guest' }}</span>
+    <button v-if="user" @click="logout">logout</button>
   </header>
 
   <main>
@@ -28,3 +26,18 @@ const showPlaceholder = computed(() => {
     <RouterView v-else />
   </main>
 </template>
+
+<style scoped>
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Разделитель перед всеми элементами, кроме первого и кнопки */
+.header > *:not(:first-child):not(button)::before {
+  content: '|';
+  margin-right: 12px;
+  color: #ccc;
+}
+</style>
