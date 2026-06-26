@@ -15,6 +15,31 @@ import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
 import { createRefreshScheduler } from './refreshScheduler'
 
+/**
+ * Сервис аутентификации, который возвращает {@link createJwtAuthViaAxios}.
+ *
+ * @typedef {Object} Auth
+ * @property {(credentials: Object) => Promise<void>} login Логин по учётным данным.
+ * @property {() => Promise<void>} logout Выход (с попыткой logout на сервере).
+ * @property {() => Promise<void>} refresh Ручной рефреш токенов.
+ * @property {import('vue').Ref<Object|null>} user Текущий пользователь (readonly).
+ * @property {import('vue').Ref<boolean>} isReady Готова ли сессия (readonly).
+ * @property {import('vue').Ref<boolean>} isAuthenticated Аутентифицирован ли пользователь (readonly).
+ * @property {import('vue').Ref<Error|null>} lastError Последняя ошибка (readonly).
+ * @property {(error: unknown) => 'auth'|'network'|'unknown'} getErrorKind Классификация ошибки.
+ */
+
+/**
+ * Создаёт сервис JWT-аутентификации поверх переданного axios-инстанса:
+ * настраивает интерсепторы запросов, гарды роутера, фоновый авто-рефреш и
+ * межвкладочную синхронизацию сессии.
+ *
+ * @param {Object} params
+ * @param {import('vue-router').Router} params.router Экземпляр vue-router.
+ * @param {import('axios').AxiosInstance} params.axiosInstance Экземпляр axios.
+ * @param {Object} [params.config] Конфигурация (глубоко мерджится с DEFAULT_CONFIG).
+ * @returns {Auth} Объект управления аутентификацией.
+ */
 export const createJwtAuthViaAxios = ({
   router,
   axiosInstance,

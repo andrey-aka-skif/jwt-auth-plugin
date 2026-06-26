@@ -27,7 +27,10 @@ export const createTokenService = ({
       const newAccessToken = tokenStorage.getAccessToken()
       const isAccessTokenExist = _isAccessTokenExist(newAccessToken)
 
-      if (isAccessTokenExist && _isUserChanged(oldSub, newAccessToken, subKey)) {
+      if (
+        isAccessTokenExist &&
+        _isUserChanged(oldSub, newAccessToken, subKey)
+      ) {
         onChangeUser?.()
         return true
       }
