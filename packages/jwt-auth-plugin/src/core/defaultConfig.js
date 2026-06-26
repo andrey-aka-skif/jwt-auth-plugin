@@ -18,11 +18,11 @@ export const DEFAULT_CONFIG = {
     autoRefresh: true,
   },
   endpoints: {
-    login: '/auth/login',
-    refresh: '/auth/refresh',
-    logout: '/auth/logout',
-    register: '/auth/register',
-    me: '/auth/me',
+    login: '/api/auth/login',
+    refresh: '/api/auth/refresh',
+    logout: '/api/auth/logout',
+    register: '/api/auth/register',
+    me: '/api/auth/me',
   },
   session: {
     // Сохранять сессию при сетевой ошибке рефреша (opt-in). По умолчанию
