@@ -115,7 +115,7 @@ public static class AuthEndpoints
         }).AllowAnonymous();
 
 
-        app.MapGet("/api/auth/me", (
+        app.MapGet("/api/auth/userinfo", (
             HttpContext httpContext,
             [FromServices] TokenService tokenService) =>
         {
@@ -132,6 +132,8 @@ public static class AuthEndpoints
                 return Results.Unauthorized();
 
             var (userId, email, role) = userData.Value;
+
+            ConsoleLogger.LogUserInfo(userId, email, role, [role]);
 
             return Results.Ok(new
             {

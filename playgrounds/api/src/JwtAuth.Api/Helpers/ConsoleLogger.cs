@@ -33,4 +33,9 @@ public static class ConsoleLogger
         var shortToken = refreshToken.Length > 8 ? refreshToken[..8] : refreshToken;
         LogInfo("Logout", $"Refresh Token: {shortToken}...");
     }
+
+    public static void LogUserInfo(string userId, string email, string role, string[] roles)
+    {
+        LogInfo("UserInfo", $"UserId: {userId}, Email: {email}, Role: {role}, Roles: [{string.Join(", ", roles)}]");
+    }
 }
