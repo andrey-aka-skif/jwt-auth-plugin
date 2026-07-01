@@ -18,6 +18,11 @@ export const _decodeToken = token => {
 
 export const _isAccessTokenExist = accessToken => !!accessToken
 
+export const _isValidAccessToken = accessToken =>
+  typeof accessToken === 'string' &&
+  accessToken.split('.').length === 3 &&
+  _decodeToken(accessToken) !== null
+
 export const _getAccessTokenSub = (accessToken, subKey) => {
   const decoded = _decodeToken(accessToken)
   return decoded?.[subKey] ?? null

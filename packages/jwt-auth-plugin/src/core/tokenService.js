@@ -2,6 +2,7 @@ import {
   _getAccessTokenSub,
   _isAccessTokenExist,
   _isUserChanged,
+  _isValidAccessToken,
   _shouldRefreshToken,
   _sleep,
 } from './tokenUtils'
@@ -46,6 +47,18 @@ export const createTokenService = ({
     return false
   }
 
+  const saveTokenPair = ({ accessToken, refreshToken }) => {
+    if (
+      !_isValidAccessToken(accessToken) ||
+      typeof refreshToken !== 'string' ||
+      !refreshToken
+    ) {
+      throw new Error(formatMessage('Сервер вернул некорректные токены'))
+    }
+
+    tokenStorage.saveTokenPair({ accessToken, refreshToken })
+  }
+
   const refreshTokens = async () => {
     const refreshToken = tokenStorage.getRefreshToken()
 
@@ -55,12 +68,10 @@ export const createTokenService = ({
 
     const { data } = await client.refresh(refreshToken)
 
-    const tokens = {
+    saveTokenPair({
       accessToken: data[accessTokenResponseKey],
       refreshToken: data[refreshTokenResponseKey],
-    }
-
-    tokenStorage.saveTokenPair(tokens)
+    })
   }
 
   const tryRefreshTokensUnderLock = async accessToken => {
@@ -117,6 +128,7 @@ export const createTokenService = ({
 
   return {
     ...tokenStorage,
+    saveTokenPair,
     tryRefreshTokens,
     isAccessTokenExist,
     getAccessTokenSub,
