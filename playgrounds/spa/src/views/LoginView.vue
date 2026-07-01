@@ -1,8 +1,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
+import { useUserStore } from '../shared/stores/userStore'
 
-const { login, isAuthenticated: isAuth, user, getErrorKind } = useAuth()
+const { login, isAuthenticated: isAuth, getErrorKind } = useAuth()
+const userStore = useUserStore()
 
 const email_placeholder = 'admin@test.com'
 const password_placeholder = 'password123'
@@ -49,7 +51,7 @@ const onSubmit = async () => {
       <div v-if="error" class="form-error">{{ error }}</div>
     </div>
 
-    <div v-else>Пользователь `{{ user.email }}` уже авторизован.</div>
+    <div v-else>Пользователь `{{ userStore.email }}` уже авторизован.</div>
   </div>
 </template>
 

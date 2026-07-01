@@ -2,8 +2,10 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { useAuth } from '@andrey-aka-skif/jwt-auth-plugin'
 import { computed } from 'vue'
+import { useUserStore } from './shared/stores/userStore'
 
 const { user, logout, isReady } = useAuth()
+const userStore = useUserStore()
 
 const showPlaceholder = computed(() => !isReady.value)
 </script>
@@ -13,7 +15,7 @@ const showPlaceholder = computed(() => !isReady.value)
     <RouterLink :to="{ name: 'home' }">Home</RouterLink>
     <RouterLink :to="{ name: 'profile' }">Profile</RouterLink>
     <RouterLink :to="{ name: 'login' }">Login</RouterLink>
-    <span>User: {{ user?.email || 'Guest' }}</span>
+    <span>User: {{ userStore.email || 'Guest' }}</span>
     <button v-if="user" @click="logout">logout</button>
   </header>
 

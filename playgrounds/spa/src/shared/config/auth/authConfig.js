@@ -2,6 +2,9 @@ export const AUTH_CONFIG = {
   api: {
     baseURL: import.meta.env.VITE_API_BASE_URL,
   },
+  session: {
+    userSource: 'endpoint', // 'claims' | 'endpoint'
+  },
   token: {
     access: {
       subKey:
