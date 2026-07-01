@@ -18,7 +18,7 @@ export const setupInterceptors = ({
     originalRequest._retry = true
 
     try {
-      await tokenService.tryRefreshTokens('interceptor')
+      await tokenService.tryRefreshTokens()
 
       const accessToken = tokenService.getAccessToken()
 

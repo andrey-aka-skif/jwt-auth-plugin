@@ -160,7 +160,7 @@ export const createJwtAuthViaAxios = ({
       },
       callbacks: {
         onNext: async () => {
-          await tokenService.tryRefreshTokens('scheduler')
+          await tokenService.tryRefreshTokens()
         },
       },
     })
@@ -169,7 +169,7 @@ export const createJwtAuthViaAxios = ({
   const auth = {
     login: sessionManager.login,
     logout: sessionManager.logout,
-    refresh: () => tokenService.tryRefreshTokens('manual'),
+    refresh: () => tokenService.tryRefreshTokens(),
     user: readonly(sessionManager.user),
     isReady: readonly(sessionManager.isReady),
     isAuthenticated: readonly(sessionManager.isAuthenticated),
