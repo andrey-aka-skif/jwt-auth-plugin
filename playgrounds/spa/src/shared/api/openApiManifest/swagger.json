@@ -7,9 +7,7 @@
   "paths": {
     "/api/auth/login": {
       "post": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -29,9 +27,7 @@
     },
     "/api/auth/refresh": {
       "post": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -51,9 +47,7 @@
     },
     "/api/auth/logout": {
       "post": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -71,11 +65,9 @@
         }
       }
     },
-    "/api/auth/me": {
+    "/api/auth/userinfo": {
       "get": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "responses": {
           "200": {
             "description": "OK"
@@ -85,9 +77,7 @@
     },
     "/api/protected": {
       "get": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "responses": {
           "200": {
             "description": "OK"
@@ -97,9 +87,7 @@
     },
     "/api/content": {
       "get": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "responses": {
           "200": {
             "description": "OK"
@@ -109,9 +97,7 @@
     },
     "/api/auth/explore-request-headers": {
       "post": {
-        "tags": [
-          "JwtAuth.Api"
-        ],
+        "tags": ["JwtAuth.Api"],
         "responses": {
           "200": {
             "description": "OK"
