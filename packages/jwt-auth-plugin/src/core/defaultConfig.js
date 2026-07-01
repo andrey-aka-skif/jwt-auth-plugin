@@ -16,14 +16,13 @@ export const DEFAULT_CONFIG = {
   },
   endpoints: {
     login: '/api/auth/login',
-    refresh: '/api/auth/refresh',
     logout: '/api/auth/logout',
-    me: '/api/auth/me',
+    refresh: '/api/auth/refresh',
+    userinfo: '/api/auth/userinfo',
   },
   session: {
-    // Сохранять сессию при ошибке сети во время рефреша токена
+    userSource: 'claims', // 'claims' | 'endpoint'
     keepSessionOnNetworkError: true,
-    // Статусы ответа, при которых сессия считается невалидной → разлогин.
     logoutStatuses: [401],
   },
   redirect: {

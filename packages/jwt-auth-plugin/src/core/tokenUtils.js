@@ -57,6 +57,19 @@ export const _shouldRefreshToken = (accessToken, thresholdMs) => {
   return remaining < thresholdMs
 }
 
+// Истёк ли токен по exp. В отличие от _shouldRefreshToken (который true уже
+// внутри порога), здесь важен факт непригодности токена: нет exp — судить не
+// можем, считаем валидным (не провоцируем рефреш).
+export const _isAccessTokenExpired = accessToken => {
+  const expiration = _getAccessTokenExpiration(accessToken)
+
+  if (!expiration) {
+    return false
+  }
+
+  return expiration <= Date.now()
+}
+
 export const _isUserChanged = (oldSub, accessToken, subKey) =>
   oldSub !== _getAccessTokenSub(accessToken, subKey)
 

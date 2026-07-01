@@ -46,14 +46,14 @@ export const createAxiosClient = ({ axiosInstance, config }) => {
     login(credentials) {
       return axiosInstance.post(config.endpoints.login, credentials)
     },
-    me() {
-      return axiosInstance.get(config.endpoints.me)
-    },
     logout(refreshToken) {
       return sendRequestWithRefreshToken(config.endpoints.logout, refreshToken)
     },
     refresh(refreshToken) {
       return sendRequestWithRefreshToken(config.endpoints.refresh, refreshToken)
+    },
+    getUserinfo() {
+      return axiosInstance.get(config.endpoints.userinfo)
     },
 
     // Классификация ошибок именно axios-клиента — единственная точка знания.

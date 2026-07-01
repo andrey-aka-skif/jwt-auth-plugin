@@ -1,6 +1,8 @@
 import {
+  _decodeToken,
   _getAccessTokenSub,
   _isAccessTokenExist,
+  _isAccessTokenExpired,
   _isUserChanged,
   _isValidAccessToken,
   _shouldRefreshToken,
@@ -118,8 +120,18 @@ export const createTokenService = ({
     return _isAccessTokenExist(tokenStorage.getAccessToken())
   }
 
+  const isAccessTokenExpired = () => {
+    return _isAccessTokenExpired(tokenStorage.getAccessToken())
+  }
+
   const getAccessTokenSub = () => {
     return _getAccessTokenSub(tokenStorage.getAccessToken(), subKey)
+  }
+
+  // Весь декодированный payload access-токена как есть (или null для битого
+  // токена). Плагин не интерпретирует содержимое — см. session.userSource.
+  const getAccessTokenClaims = () => {
+    return _decodeToken(tokenStorage.getAccessToken())
   }
 
   const isUserChanged = oldSub => {
@@ -131,7 +143,9 @@ export const createTokenService = ({
     saveTokenPair,
     tryRefreshTokens,
     isAccessTokenExist,
+    isAccessTokenExpired,
     getAccessTokenSub,
+    getAccessTokenClaims,
     isUserChanged,
   }
 }
