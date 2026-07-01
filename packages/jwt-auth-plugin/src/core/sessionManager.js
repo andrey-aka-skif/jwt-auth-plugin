@@ -73,6 +73,7 @@ export const createSessionManager = ({
   const clear = () => {
     sessionVersion++
 
+    sub = null
     tokenService.clearTokens()
     user.value = null
     isReady.value = true
