@@ -43,9 +43,6 @@ export const createAxiosClient = ({ axiosInstance, config }) => {
   const logoutStatuses = config.session?.logoutStatuses ?? [401]
 
   return {
-    register(registrationData) {
-      return axiosInstance.post(config.endpoints.register, registrationData)
-    },
     login(credentials) {
       return axiosInstance.post(config.endpoints.login, credentials)
     },

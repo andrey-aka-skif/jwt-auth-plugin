@@ -18,7 +18,6 @@ export const DEFAULT_CONFIG = {
     login: '/api/auth/login',
     refresh: '/api/auth/refresh',
     logout: '/api/auth/logout',
-    register: '/api/auth/register',
     me: '/api/auth/me',
   },
   session: {

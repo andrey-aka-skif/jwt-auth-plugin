@@ -123,7 +123,7 @@ createApp(App)
 
 | Параметр                                                 | По умолчанию                     | Назначение                                                                      |
 | -------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------- |
-| `endpoints.{login,refresh,logout,register,me}`           | `/api/auth/*`                    | Пути auth-эндпоинтов (относительно `api.baseURL`)                               |
+| `endpoints.{login,refresh,logout,me}`                    | `/api/auth/*`                    | Пути auth-эндпоинтов (относительно `api.baseURL`)                               |
 | `storage.namespace`                                      | имя пакета                       | Префикс ключей localStorage; `''` / `null` — без префикса                       |
 | `storage.accessTokenKey` / `refreshTokenKey`             | `access-token` / `refresh-token` | Ключи localStorage для токенов                                                  |
 | `token.access.requestKey`                                | `Authorization`                  | Заголовок, в который кладётся `Bearer <access>`                                 |
