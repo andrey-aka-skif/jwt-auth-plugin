@@ -10,6 +10,7 @@ import { setupRoutingGuards } from './setupRoutingGuards'
 import { setupCrossTabSync } from './setupCrossTabSync'
 import { createTokenService } from './tokenService'
 import { createSessionManager } from './sessionManager'
+import { createClaimsUserSource, createEndpointUserSource } from './userSource'
 import { maybeAuthRedirect } from './maybeAuthRedirect'
 import { createTokenStorage } from './tokenStorage'
 import { setupInterceptors } from './setupInterceptors'
@@ -109,9 +110,18 @@ export const createJwtAuthViaAxios = ({
     },
   })
 
+  // Источник данных пользователя:
+  // 'claims' - claims из токена (по умолчанию)
+  // 'endpoint' - сетевой запрос к /userinfo
+  const userSource =
+    config.session.userSource === 'endpoint'
+      ? createEndpointUserSource({ client })
+      : createClaimsUserSource({ tokenService })
+
   sessionManager = createSessionManager({
     client,
     tokenService,
+    userSource,
     keys: {
       accessTokenResponseKey: config.token.access.responseKey,
       refreshTokenResponseKey: config.token.refresh.responseKey,

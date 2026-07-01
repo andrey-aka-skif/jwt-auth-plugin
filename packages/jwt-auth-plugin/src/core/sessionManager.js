@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 export const createSessionManager = ({
   client,
   tokenService,
+  userSource,
   keys: { accessTokenResponseKey, refreshTokenResponseKey },
   callbacks: { onRestoreSession, onClearSession },
 }) => {
@@ -55,13 +56,23 @@ export const createSessionManager = ({
 
       sub = tokenService.getAccessTokenSub()
 
-      const me = await client.me()
+      // Способ получения профиля определяет инжектируемый источник
+      // (claims: claims из токена; endpoint: сетевой /userinfo) — см. userSource.js.
+      const resolved = await userSource.resolveUser()
 
+      // Пока шёл await, сессию могли очистить (clear бампит sessionVersion) —
+      // не затираем свежее состояние устаревшим восстановлением.
       if (version !== sessionVersion) {
         return
       }
 
-      user.value = me.data
+      // Источник сообщил, что валидной сессии больше нет (и уже её очистил).
+      if (resolved === null) {
+        clear()
+        return
+      }
+
+      user.value = resolved
       onRestoreSession?.()
     } catch {
       clear()
