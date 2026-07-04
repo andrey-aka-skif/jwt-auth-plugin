@@ -5,10 +5,12 @@
 
 ## Структура
 
-- `packages/jwt-auth-plugin` — сам плагин (публикуемый npm-пакет).
-- `playgrounds/spa` — демо-приложение на Vue 3 + Vite (в т. ч. пример работы со
-  сгенерированным @hey-api SDK поверх общего axios-инстанса).
-- `playgrounds/api` — бэкенд для демо (ASP.NET, выдаёт OpenAPI-спецификацию).
+- [`packages/jwt-auth-plugin`](packages/jwt-auth-plugin/README.md) — сам плагин
+  (публикуемый npm-пакет).
+- [`playgrounds/spa`](playgrounds/spa/README.md) — демо на Vue 3 + Vite: запуск,
+  генерация SDK из OpenAPI-спеки, пример SDK поверх общего axios-инстанса.
+- [`playgrounds/api`](playgrounds/api/README.md) — demo-бэкенд (ASP.NET .NET 9),
+  отдаёт OpenAPI-спеку.
 
 ## Команды (из корня)
 
@@ -18,12 +20,5 @@ npm run build    # собрать плагин
 npm run lint     # eslint по всему репо
 ```
 
-SDK в `playgrounds/spa` генерируется из снапшота спецификации
-(`src/shared/api/openApiManifest/swagger.json`) и в гит не коммитится:
-
-```bash
-npm run generate -w playgrounds/spa   # пересобрать SDK из снапшота
-```
-
-Скрипт `prepare` в `playgrounds/spa` запускает генерацию автоматически после
-`npm install` — на свежем клоне SDK восстанавливается сам.
+Как запускать плейграунды и как устроена генерация SDK/OpenAPI-спеки — в их README
+(ссылки выше).
