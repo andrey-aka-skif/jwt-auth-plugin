@@ -64,4 +64,17 @@ export default defineConfig([
       ],
     },
   },
+
+  {
+    name: 'app/node-scripts',
+    files: ['**/scripts/**/*.{js,mjs}'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
+    rules: {
+      'no-console': 'off',
+    },
+  },
 ])
