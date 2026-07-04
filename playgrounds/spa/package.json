@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "format": "prettier --write src",
     "generate": "openapi-ts",
+    "spec:pull": "node scripts/pull-spec.mjs && npm run generate",
     "prepare": "npm run generate"
   },
   "dependencies": {
