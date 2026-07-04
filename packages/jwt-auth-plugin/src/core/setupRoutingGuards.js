@@ -6,27 +6,12 @@ export const setupRoutingGuards = ({ router, sessionManager, redirects }) => {
       await sessionManager.initialize()
     }
 
-    const requireAuth = to.matched.reduceRight(
-      (value, record) =>
-        record.meta.auth !== undefined ? record.meta.auth : value,
-      false
-    )
-
-    const redirectOnNotAuthenticated = to.matched.reduceRight(
-      (value, record) =>
-        record.meta.redirectOnNotAuthenticated !== undefined
-          ? record.meta.redirectOnNotAuthenticated
-          : value,
-      false
-    )
-
-    const redirectOnAuthenticated = to.matched.reduceRight(
-      (value, record) =>
-        record.meta.redirectOnAuthenticated !== undefined
-          ? record.meta.redirectOnAuthenticated
-          : value,
-      false
-    )
+    // vue-router мержит meta всех matched-записей от parent к child (child
+    // переопределяет parent) — тот же источник, что у maybeAuthRedirect,
+    // поэтому гард и программный редирект резолвят meta одинаково.
+    const requireAuth = to.meta.auth
+    const redirectOnNotAuthenticated = to.meta.redirectOnNotAuthenticated
+    const redirectOnAuthenticated = to.meta.redirectOnAuthenticated
 
     const backToPrevious = redirects.backToPreviousOnAuthenticated
 
